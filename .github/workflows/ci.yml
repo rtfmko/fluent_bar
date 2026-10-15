@@ -70,7 +70,7 @@ jobs:
           hit=$(grep -h '^LH:' coverage/lcov.info | cut -d: -f2 | paste -sd+ | bc)
           echo "### Coverage: $hit of $total lines ($(echo "scale=2; 100 * $hit / $total" | bc)%)" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the coverage report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage/lcov.info
