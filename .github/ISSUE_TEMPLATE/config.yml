@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Live demo
+    url: https://rtfmko.github.io/fluent_bar/
+    about: Try the feature in the browser first - every demo screen shows the code behind it.

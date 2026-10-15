@@ -1,0 +1,57 @@
+name: Release
+
+# Runs when a release tag is pushed (git tag vX.Y.Z && git push origin vX.Y.Z) and checks that the
+# tag is a real release: it names the version in pubspec.yaml, points at a commit of main, and
+# that commit passes every check. Publish to pub.dev only after this workflow is green.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  # Keep in sync with .fvmrc.
+  FLUTTER_VERSION: 3.47.5
+
+jobs:
+  verify:
+    name: Verify the release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The whole history: the tagged commit is looked up in main.
+          fetch-depth: 0
+      - name: The tag names the version in pubspec.yaml
+        run: |
+          version=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml)
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::The tag ${GITHUB_REF_NAME} does not match version ${version} in pubspec.yaml (expected v${version})."
+            exit 1
+          fi
+      - name: The tagged commit is on main
+        run: |
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "::error::${GITHUB_REF_NAME} points at a commit that is not on main. Pull requests are squash-merged: tag main after the merge, not the branch."
+            exit 1
+          fi
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Check that every example in the docs compiles
+        run: dart run tool/check_snippets.dart
+      # Includes test/docs_test: links name this tag, the guides name this version, the
+      # CHANGELOG starts with it.
+      - name: Run tests
+        run: flutter test
+      - name: Check that the package can be published
+        run: flutter pub publish --dry-run

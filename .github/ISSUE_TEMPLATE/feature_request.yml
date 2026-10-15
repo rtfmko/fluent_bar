@@ -1,0 +1,21 @@
+name: Feature request
+description: An idea for something new or a change to how something works
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The task in your app, not the solution. What is hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How it could look
+      description: The call or setting you would like to write, if you have one in mind.
+      render: dart
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today instead

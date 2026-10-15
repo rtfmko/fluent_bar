@@ -1,0 +1,27 @@
+# pub.dev package contents. This file replaces .gitignore for publishing, so its rules are
+# repeated here; below them is what lives in the repository but is not part of the package.
+.*
+
+*.class
+*.log
+*.pyc
+*.swp
+*.zip
+*.iml
+*.ipr
+*.iws
+migrate_working_dir/
+/pubspec.lock
+**/doc/api/
+/build/
+/coverage/
+
+# Repository-only files.
+/CONTRIBUTING.md
+# The README loads the clips from GitHub; only the pub.dev screenshot ships.
+/doc/media/*.gif
+/doc/media/monitor.png
+
+# Tools for checking the repository.
+/tool/
+/test/_snippets/

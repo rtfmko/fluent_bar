@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Actions used by the workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+
+  # Dev dependencies of the package.
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+
+  # Dependencies of the example app.
+  - package-ecosystem: pub
+    directory: /example
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore

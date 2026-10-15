@@ -1,0 +1,22 @@
+name: fluent_bar_example
+description: Demonstrates how to use the fluent_bar package.
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  fluent_bar:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

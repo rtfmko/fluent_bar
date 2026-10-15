@@ -1,0 +1,57 @@
+# fluent_bar
+
+> A Flutter package for in-app notification bars - snackbar, toast, banner, progress and loading -
+> shown in an overlay above the navigator. Bars are queued, can be updated while visible, and are
+> configured in one order everywhere: the bar, then its type, then the global config. The entry
+> point is the static class `FluentBar`; no `BuildContext` is needed.
+
+Import with `import 'package:fluent_bar/fluent_bar.dart';` and set up an overlay once with
+`MaterialApp(builder: FluentBarScope.builder())`. Do not import from `package:fluent_bar/src/`.
+
+## Docs
+
+- [Live demo](https://rtfmko.github.io/fluent_bar/): the example app in the browser; every screen shows the code behind it
+- [AI guide](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/AI_GUIDE.md): the guide for assistants - the rules, common mistakes and an index of the topic files below; read it first
+- [AI: setup](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/setup.md): setting up the overlay, how bars, regions and the queue work
+- [AI: showing a bar](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/showing.md): one-liners, the chain, presets, action buttons, gestures, screen readers
+- [AI: live bars](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/live-bars.md): changing, finding and closing a bar on screen
+- [AI: progress](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/progress.md): downloads, uploads, futures, Cancel and Retry
+- [AI: queue](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/queue.md): queue, priorities, forced bars, duplicates, tags
+- [AI: look](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/look.md): themes, custom types, builders
+- [AI: settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/settings.md): global config and where a value comes from
+- [AI: analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/analytics.md): events and metrics
+- [AI: errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/errors.md): the error handler, every error type and what the library does then
+- [AI: options](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/options.md): every per-bar option and enum value
+- [AI: source](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/source.md): where things are in the source and in the demo app
+- [AI: recipes](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/recipes.md): ready solutions and other packages
+- [AI: troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/troubleshooting.md): a symptom, its cause and the fix
+- [AI: migrations](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/ai/migrations.md): renamed and removed API, old name to new name
+- [Integrations](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/INTEGRATIONS.md): compiled examples with dio, http, firebase_storage, flutter_bloc, provider, flutter_riverpod, firebase_analytics, firebase_crashlytics, sentry_flutter, connectivity_plus, firebase_messaging, go_router
+- [Queue and duplicates](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/queue.md): regions, priorities, queue strategies, duplicate rules, tags for one screen
+- [Behavior](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/behavior.md): close button, lifecycle states, what follows from how bars work
+- [Settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/settings.md): global config and the order every setting is resolved in
+- [Themes](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/themes.md): built-in themes, tweaking one, light and dark, custom themes
+- [Types](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/types.md): built-in types, variations, typeOverrides, custom types
+- [Builders](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/builders.md): replace the content, position, transition or progress of a bar
+- [Accessibility](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/accessibility.md): screen readers, reduce motion, progress announcements
+- [Analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/analytics.md): events and metrics of every bar
+- [Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/errors.md): every error type and severity, when it is reported and what the library does then
+- [Troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/troubleshooting.md): a symptom, why it happens and what to do
+- [Reference](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/reference.md): every public class, method and enum
+- [Agent pointer](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/ai/AGENTS.md): a short text for AGENTS.md that tells an assistant where the guide of the installed version is
+
+## Source
+
+- [Public exports](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/fluent_bar.dart): everything an app may import
+- [FluentBar](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/facade/fluent_bar.dart): the static API - drafts, presets, show, find, close, config
+- [Chain methods](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/extensions/fluent_bar_builder_extensions.dart): `.with…()` builders on a draft
+- [Entry shortcuts](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/extensions/fluent_bar_extensions.dart): update, progress and effects on a shown bar
+- [FluentBarController](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/interfaces/fluent_bar_controller.dart): everything a shown bar can do
+- [FluentBarConfig](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/models/fluent_bar_config.dart): global defaults
+- [FluentBarTheme](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/interfaces/fluent_bar_theme.dart): built-in themes and what a custom theme overrides
+- [FluentBarType](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/lib/src/interfaces/fluent_bar_type.dart): built-in types and what a custom type overrides
+
+## Optional
+
+- [Example app](https://github.com/rtfmko/fluent_bar/tree/v1.0.0/example/lib/screens/): a runnable screen for every feature
+- [Changelog](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/CHANGELOG.md)

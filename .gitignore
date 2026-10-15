@@ -1,0 +1,35 @@
+# Everything that starts with a dot is local tooling
+.*
+
+# ...except what the repository needs.
+!.github/
+!.gitignore
+!.gitattributes
+!.pubignore
+# The Flutter version CI and contributors use.
+!.fvmrc
+# Used by `flutter` to upgrade and migrate the project.
+!.metadata
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+*.zip
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+
+# Flutter/Dart/Pub related
+# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
+/pubspec.lock
+**/doc/api/
+/build/
+/coverage/
+
+# Written and removed by tool/check_snippets.dart.
+/test/_snippets/

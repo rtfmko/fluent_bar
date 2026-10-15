@@ -1,0 +1,103 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+    unused_import: error
+    dead_code: error
+    unused_local_variable: error
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - '**/*.g.dart'
+
+linter:
+  rules:
+    # --- Security & Architecture ---
+    - avoid_print
+    - use_build_context_synchronously
+    - always_use_package_imports
+    - avoid_relative_lib_imports
+    - parameter_assignments
+    - prefer_spread_collections
+
+    # --- Memory Leaks & Reliability (Must Have) ---
+    - cancel_subscriptions
+    - close_sinks
+    - curly_braces_in_flow_control_structures
+    - no_duplicate_case_values
+
+    # --- Imports Organization ---
+    - directives_ordering
+
+    # --- Performance Optimization ---
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_const_constructors_in_immutables
+    - avoid_unnecessary_containers
+    - sized_box_for_whitespace
+    - use_colored_box
+    - use_decorated_box
+    - avoid_slow_async_io
+    - prefer_collection_literals
+    - use_super_parameters
+    - prefer_iterable_whereType
+    - use_key_in_widget_constructors
+    - unnecessary_to_list_in_spreads
+    - use_rethrow_when_possible
+
+
+    # --- Code Style & Readability ---
+    - always_specify_types
+    - prefer_single_quotes
+    - prefer_final_fields
+    - unnecessary_getters_setters
+    - sort_child_properties_last
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - require_trailing_commas
+    - constant_identifier_names
+    - implementation_imports
+    - avoid_classes_with_only_static_members
+    - library_private_types_in_public_api
+    - avoid_dynamic_calls
+    - no_leading_underscores_for_local_identifiers
+    - unnecessary_overrides
+    - avoid_function_literals_in_foreach_calls
+    - empty_catches
+    - avoid_type_to_string
+    - no_adjacent_strings_in_list
+    - unnecessary_parenthesis
+    - prefer_conditional_assignment
+
+    # --- Advanced Performance ---
+    - use_string_buffers
+
+    # --- Async & Reliability ---
+    - unawaited_futures
+    - avoid_void_async
+    - collection_methods_unrelated_type
+
+    # --- Strict Immutability ---
+    - prefer_final_locals
+    - prefer_final_in_for_each
+
+    # --- Documentation ---
+    - public_member_api_docs
+    - comment_references
+
+    # --- Cleanliness ---
+    - no_literal_bool_comparisons
+    - unnecessary_lambdas
+    - unnecessary_await_in_return
+    - prefer_asserts_with_message
+
+formatter:
+  page_width: 200

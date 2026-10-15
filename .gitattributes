@@ -1,0 +1,16 @@
+# One line ending in the repository and in every checkout: the formatter check on CI compares
+# bytes, and shell scripts of the example break with CRLF.
+* text=auto eol=lf
+
+# Windows batch files need CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never touched.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.jar binary

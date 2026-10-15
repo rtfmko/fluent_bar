@@ -1,0 +1,66 @@
+name: Deploy demo and docs
+
+# Publishes to GitHub Pages:
+#   the example app   https://rtfmko.github.io/fluent_bar/
+#   the API reference https://rtfmko.github.io/fluent_bar/api/
+# The site shows the released version, so it is built from a release tag, not from main: the docs
+# of a version on pub.dev link to it. To rebuild it by hand, run the workflow on the latest tag
+# ("Use workflow from" -> Tags).
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time; a queued one waits instead of cancelling the one in progress.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # Keep in sync with .fvmrc.
+  FLUTTER_VERSION: 3.47.5
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - uses: actions/configure-pages@v5
+      - name: Build the example for the web
+        working-directory: example
+        # The site is served from /fluent_bar/, not from the domain root.
+        run: |
+          flutter pub get
+          flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+      - name: Generate the API reference
+        run: |
+          flutter pub get
+          dart doc --output example/build/web/api
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: example/build/web
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

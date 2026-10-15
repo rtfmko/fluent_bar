@@ -1,0 +1,45 @@
+name: fluent_bar
+description: "Powerful snackbar library for Flutter supporting smart queues, deduplication, pause on touch, Future actions with auto-loaders, and comprehensive analytics."
+version: 1.0.0
+homepage: https://github.com/rtfmko/fluent_bar
+repository: https://github.com/rtfmko/fluent_bar
+issue_tracker: https://github.com/rtfmko/fluent_bar/issues
+
+topics:
+  - snackbar
+  - toast
+  - notification
+  - overlay
+  - ui
+
+funding:
+  - https://ko-fi.com/rtfmko
+
+screenshots:
+  - description: Five bars queue at the top while an upload shows progress at the bottom.
+    path: doc/media/hero.png
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  windows:
+  web:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: '>=1.0.8 <3.0.0'
+  meta: ^1.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  fake_async: ^1.3.1
+  clock: ^1.1.1
