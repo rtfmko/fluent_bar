@@ -38,7 +38,7 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - name: Build the example for the web
         working-directory: example
         # The site is served from /fluent_bar/, not from the domain root.
