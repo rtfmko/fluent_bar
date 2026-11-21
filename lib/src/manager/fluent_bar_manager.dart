@@ -69,7 +69,8 @@ class FluentBarManager {
     FluentBarRegion.bottom: FrameSafeValueNotifier<int>(0),
   };
 
-  late final CombinedValueListenable _allQueueLengthNotifier = CombinedValueListenable(_queueLengthNotifiers[FluentBarRegion.main]!, _queueLengthNotifiers[FluentBarRegion.bottom]!);
+  // Created on first access; resetForTesting disposes it.
+  CombinedValueListenable? _allQueueLengthNotifier;
 
   List<void Function(FluentBarAnalyticsPayload)>? _analyticsListeners;
   List<void Function(FluentBarException, StackTrace)>? _errorHandlers;
@@ -81,6 +82,12 @@ class FluentBarManager {
   // from main() before runApp) nothing is scheduled; the app creates the binding.
 
   bool _isDequeueScheduled = false;
+
+  // Notifications about waiting bars that ended while the queues were being changed. They run
+  // when the outermost change is finished: a callback may show or close bars, and it must see
+  // (and change) consistent queues, not a half-cleared one.
+  int _queueChangeDepth = 0;
+  List<void Function()>? _pendingEndNotifications;
 
   /// Schedules showing the waiting bars at the end of the next frame.
   ///
@@ -262,7 +269,7 @@ class FluentBarManager {
   }
 
   /// Notifies when the total number of waiting bars changes.
-  ValueListenable<int> get allQueueLengthNotifier => _allQueueLengthNotifier;
+  ValueListenable<int> get allQueueLengthNotifier => _allQueueLengthNotifier ??= CombinedValueListenable(_queueLengthNotifiers[FluentBarRegion.main]!, _queueLengthNotifiers[FluentBarRegion.bottom]!);
 
   /// Notifies when the number of bars waiting in the top region changes.
   ValueListenable<int> get mainQueueLengthNotifier => _queueLengthNotifiers[FluentBarRegion.main]!;

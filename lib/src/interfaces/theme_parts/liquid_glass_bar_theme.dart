@@ -8,7 +8,7 @@ class _LiquidGlassBarTheme extends _CupertinoBarTheme {
 
   @override
   BoxDecoration boxDecoration(BuildContext context, FluentBarType type, FluentBarTheme theme, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     final Color baseColor = type.backgroundColor ?? (dark ? CupertinoColors.systemBackground.darkColor : CupertinoColors.systemBackground.color);
 
     return BoxDecoration(
@@ -27,7 +27,7 @@ class _LiquidGlassBarTheme extends _CupertinoBarTheme {
 
   @override
   BoxDecoration? actionDecoration(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     final Color greyColor = dark ? CupertinoColors.systemGrey6.darkColor : CupertinoColors.systemGrey6.color;
 
     return BoxDecoration(
@@ -39,7 +39,7 @@ class _LiquidGlassBarTheme extends _CupertinoBarTheme {
 
   @override
   Widget wrapContainer(BuildContext context, Widget child, FluentBarEntry<dynamic> entry, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return DecoratedBox(
       decoration: BoxDecoration(

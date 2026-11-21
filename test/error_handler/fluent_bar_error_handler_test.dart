@@ -200,4 +200,42 @@ void main() {
       }
     });
   });
+
+  group('without any error handler', () {
+    final List<FlutterErrorDetails> reported = <FlutterErrorDetails>[];
+    FlutterExceptionHandler? previous;
+
+    setUp(() {
+      FluentBar.removeErrorHandler(onError);
+      reported.clear();
+      previous = FlutterError.onError;
+      FlutterError.onError = reported.add;
+    });
+
+    tearDown(() => FlutterError.onError = previous);
+
+    test('an error goes to FlutterError.reportError as a FluentBarException', () {
+      handler.handle(Exception('boom'), FluentBarErrorType.callbackTap, null, null, 'onTap');
+
+      final FlutterErrorDetails details = reported.single;
+      expect(details.exception, isA<FluentBarException>().having((FluentBarException e) => e.type, 'type', FluentBarErrorType.callbackTap));
+      expect(details.library, 'fluent_bar');
+      expect(details.context.toString(), contains('onTap'));
+    });
+
+    test('a warning does not go to FlutterError.reportError', () {
+      handler.handle('late call', FluentBarErrorType.invalidCall, null, FluentBarErrorSeverity.warning);
+
+      expect(reported, isEmpty);
+    });
+
+    test('once a handler is registered, errors go to it and not to FlutterError', () {
+      FluentBar.addErrorHandler(onError);
+
+      handler.handle(Exception('boom'), FluentBarErrorType.callbackTap);
+
+      expect(reported, isEmpty);
+      expect(received, hasLength(1));
+    });
+  });
 }

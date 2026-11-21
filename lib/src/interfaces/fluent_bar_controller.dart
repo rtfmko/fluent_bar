@@ -177,10 +177,12 @@ abstract class FluentBarController<T> {
   void cancelProgress({String? fallbackMessage, FluentBarType? fallbackType, bool dismiss = false});
 
   /// Completes the progress with success: the indicator turns into the success icon, the bar takes
-  /// the new texts and type (if given) and starts the usual countdown. Fires `onProgressCompleted`.
+  /// the new texts and type (if given) and starts the usual countdown; a persistent bar stays.
+  /// Fires `onProgressCompleted`. After [failProgress] the last call wins: the bar takes
+  /// [FluentBarType.success] unless [type] is given. A second completion is ignored.
   void completeProgress({String? message, String? title, FluentBarType? type});
 
-  /// Completes the progress with a failure: the indicator is removed, the bar takes the new texts and
+  /// Completes the progress with a failure: the indicator goes away, the bar takes the new texts and
   /// type ([FluentBarType.error] by default) and starts the usual countdown. Fires `onProgressFailed`.
   ///
   /// With [retryLabel] the bar gets a Retry button in place of its action. A tap removes the button

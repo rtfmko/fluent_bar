@@ -197,6 +197,16 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
     });
   }
 
+  /// The side of a ring. A ring with its text inside is at least as big as the text needs to be readable.
+  double get _ringSize {
+    final double size = theme.size ?? 24.0;
+    if (!theme.isCircular || !theme.showText || !theme.shouldCenterText) return size;
+
+    return size < _minRingWithText ? _minRingWithText : size;
+  }
+
+  static const double _minRingWithText = 36.0;
+
   Alignment _resolveAlignment() {
     if (theme.position == FluentBarProgressPosition.top || theme.position == FluentBarProgressPosition.bottom) {
       return Alignment.center;
@@ -267,7 +277,7 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
   }
 
   Widget _buildSuccessIconContainer(Alignment alignment) {
-    final double targetSize = theme.size ?? 24.0;
+    final double targetSize = _ringSize;
 
     return SizedBox(
       width: targetSize,
@@ -286,9 +296,9 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
   Widget _buildLoader(BuildContext context, FluentBarProgressState state) {
     final double? progress = state.progress;
     final bool isIndeterminate = progress == null;
-    // In place of the icon there is room for a percent and nothing else: bytes and fractions
+    // A ring in place of the icon has room for a percent and nothing else: bytes and fractions
     // would shrink to an unreadable size, so they and custom labels show their percent there.
-    final bool isInIcon = theme.position == FluentBarProgressPosition.replaceIcon;
+    final bool isInIcon = theme.position == FluentBarProgressPosition.replaceIcon && theme.isCircular;
     final String targetLabel = isInIcon
         ? (isIndeterminate ? '' : '${progressPercentOf(progress)}%')
         : theme.labelBuilder != null
@@ -330,8 +340,8 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
   Widget _buildLayout(Widget loader, String text, double? value) {
     if (!theme.showText || text.isEmpty) return loader;
 
-    // A linear indicator in the icon slot occupies a square the size of the icon. The label (a
-    // percent, see _buildLoader) goes under the line and shrinks if the square is smaller.
+    // A linear indicator in the icon slot has a wider slot than the icon (see the default widget).
+    // The label goes under the line and shrinks if the slot is smaller.
     if (!theme.isCircular && theme.position == FluentBarProgressPosition.replaceIcon) {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -350,7 +360,8 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
 
     if (theme.isCircular) {
       if (theme.shouldCenterText) {
-        final double indicatorSize = theme.size ?? 24.0;
+        final double indicatorSize = _ringSize;
+        final double fontSize = (indicatorSize * 0.3).clamp(10.0, 14.0).toDouble();
         return SizedBox(
           width: indicatorSize,
           height: indicatorSize,
@@ -361,8 +372,8 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Padding(
-                  padding: const EdgeInsets.all(3.0),
-                  child: _buildLabel(text, value, fontSize: 9, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.all(4.0),
+                  child: _buildLabel(text, value, fontSize: fontSize, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -391,7 +402,7 @@ class _FluentBarTaskProgressWidgetState extends State<FluentBarTaskProgressWidge
 
   Widget _buildIndicator(double? value) {
     final Color color = theme.progressColor ?? defaultColor;
-    final double targetSize = theme.size ?? 24.0;
+    final double targetSize = _ringSize;
 
     if (theme.style == FluentBarProgressStyle.circular) {
       return SizedBox(

@@ -1,6 +1,6 @@
 # Accessibility
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Accessibility
 
@@ -29,6 +29,9 @@ not know that the bar exists.
 so the user can move to it and hear `42%`, but an upload does not talk all the way through. The
 result is announced when you give the bar a new message: `completeProgress(message: 'Uploaded')`.
 `FluentBarProgressTheme(announceUpdates: true)` reads out every update.
+
+The close button reads `semanticLabel` to a screen reader; pass your own when you build
+`FluentBarCloseButton(controller: …, semanticLabel: …)` in a content builder.
 
 **Motion.** With the system "reduce motion" setting bars fade instead of sliding
 (see [Global config](settings.md#global-config)).

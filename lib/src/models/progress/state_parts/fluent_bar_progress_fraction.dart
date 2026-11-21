@@ -9,9 +9,12 @@ class FluentBarProgressFraction extends FluentBarProgressState {
   final int total;
 
   /// Creates a progress of [current] out of [total].
-  const FluentBarProgressFraction(this.current, this.total) : assert(current >= 0 && total > 0 && current <= total, 'A fraction needs total > 0 and 0 <= current <= total.');
+  ///
+  /// A fraction needs `total > 0` and `0 <= current <= total`. Another one is not rejected here:
+  /// a bar that gets one as an update ignores it and reports a warning, and [progress] keeps the
+  /// indicator in range.
+  const FluentBarProgressFraction(this.current, this.total);
 
-  // The assert works only in debug; in release a zero total or an out-of-range value must not break the indicator.
   @override
   double? get progress => total <= 0 ? 0.0 : (current / total).clamp(0.0, 1.0).toDouble();
 

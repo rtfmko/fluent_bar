@@ -434,9 +434,15 @@ extension FluentBarConfigResolution on FluentBarConfig {
 /// Comparing and merging items.
 extension FluentBarItemMerging<T> on FluentBarItem<T> {
   /// A progress update by "the same" bar: progress, texts and type come from [incoming], the rest
-  /// (action, callbacks, behavior, look, duration) stays. The title changes only if it is set.
-  FluentBarItem<T> withProgressFrom(FluentBarItem<dynamic> incoming) =>
-      copyWith(type: incoming.type, title: incoming.title, message: incoming.message, progressState: incoming.progressState, clearProgressState: incoming.progressState == null);
+  /// (action, callbacks, behavior, look, duration) stays. A new bar without a title removes it.
+  FluentBarItem<T> withProgressFrom(FluentBarItem<dynamic> incoming) => copyWith(
+    type: incoming.type,
+    title: incoming.title,
+    clearTitle: incoming.title == null,
+    message: incoming.message,
+    progressState: incoming.progressState,
+    clearProgressState: incoming.progressState == null,
+  );
 
   /// Equality by everything except progress.
   ///

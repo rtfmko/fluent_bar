@@ -427,12 +427,18 @@ void main() {
     });
 
     testWidgets('a throwing isDarkMode falls back to the base theme everywhere', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
+
       final BuildContext context = await pumpContext(tester);
       const FluentBarTheme base = FluentBarTheme.modern;
       final FluentBarTheme broken = base.copyWith(isDarkMode: (BuildContext c, FluentBarType t, FluentBarThemeMode? m) => throw Exception('boom'));
 
       expect(broken.isDarkMode(context, FluentBarType.info, themeMode: dark), isTrue);
       expect(broken.titleStyle(context, FluentBarType.info, themeMode: dark), base.titleStyle(context, FluentBarType.info, themeMode: dark));
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.darkMode));
     });
 
     testWidgets('an overridden isDarkMode is used when building the decoration', (WidgetTester tester) async {

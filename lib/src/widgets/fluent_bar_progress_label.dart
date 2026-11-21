@@ -52,7 +52,7 @@ class _FluentBarProgressLabelState extends State<FluentBarProgressLabel> with Si
   @override
   void initState() {
     super.initState();
-    _text = widget.text;
+    _text = wellFormedText(widget.text);
     _value = widget.value;
   }
 
@@ -61,7 +61,7 @@ class _FluentBarProgressLabelState extends State<FluentBarProgressLabel> with Si
     super.didUpdateWidget(oldWidget);
     if (!_animates) {
       _showAtOnce();
-    } else if (widget.text == _text) {
+    } else if (wellFormedText(widget.text) == _text) {
       _hasPending = false;
     } else if (_isChanging) {
       _hasPending = true;
@@ -79,7 +79,7 @@ class _FluentBarProgressLabelState extends State<FluentBarProgressLabel> with Si
   void _showAtOnce() {
     _change?.stop();
     _hasPending = false;
-    _text = widget.text;
+    _text = wellFormedText(widget.text);
     _value = widget.value;
   }
 
@@ -88,7 +88,7 @@ class _FluentBarProgressLabelState extends State<FluentBarProgressLabel> with Si
     final double? current = widget.value;
     if (previous != null && current != null && previous != current) _increasing = current > previous;
 
-    _text = widget.text;
+    _text = wellFormedText(widget.text);
     _value = current;
     _hasPending = false;
     final AnimationController change = _change ??= AnimationController(vsync: this)..addStatusListener(_onChangeStatus);
@@ -107,7 +107,7 @@ class _FluentBarProgressLabelState extends State<FluentBarProgressLabel> with Si
     _isReducedMotion = FluentBarManager.instance.config.reducesMotion(context);
     if (!_animates) {
       _showAtOnce();
-      return Text(widget.text, style: widget.style);
+      return Text(wellFormedText(widget.text), style: widget.style);
     }
 
     return switch (widget.effect) {

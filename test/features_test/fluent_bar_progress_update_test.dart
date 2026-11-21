@@ -183,7 +183,7 @@ void main() {
 
       expect(progressOf(entry), 0.5);
       expect(entry.currentItem.message, 'Half way');
-      expect(entry.currentItem.title, 'Files');
+      expect(entry.currentItem.title, isNull, reason: 'the texts come from the new bar, which has no title');
       expect(entry.currentItem.actions?.label, 'Cancel');
       expect(entry.currentItem.behavior.isSwipeEnabled, isFalse);
       expect(entry.currentItem.appearance.backgroundColor, Colors.purple);
@@ -200,6 +200,24 @@ void main() {
       expect(dismissed, 1);
       expect(errors, isEmpty);
 
+      await cleanup(tester);
+    });
+
+    testWidgets('a progress re-show without a title removes the title', (WidgetTester tester) async {
+      await boot(tester);
+      final FluentBarEntry<void> entry = upload(0.1).withTitle('Files').show()!;
+      await settle(tester);
+      expect(find.text('Files'), findsOneWidget);
+
+      upload(0.5).show();
+      await settle(tester);
+
+      expect(entry.currentItem.title, isNull);
+      expect(find.text('Files'), findsNothing);
+
+      upload(0.6).withTitle('Photos').show();
+      await settle(tester);
+      expect(entry.currentItem.title, 'Photos');
       await cleanup(tester);
     });
 

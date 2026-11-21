@@ -18,6 +18,9 @@ extension FluentBarManagerErrorHandler on FluentBarManager {
     }
   }
 
+  /// Whether at least one error handler is registered.
+  bool get hasErrorHandlers => _errorHandlers != null;
+
   /// Delivers [error] to the handlers. A throwing handler does not affect the others.
   void notifyErrors(FluentBarException error, StackTrace stackTrace) {
     if (_errorHandlers == null) return;

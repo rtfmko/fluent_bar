@@ -102,6 +102,7 @@ void main() {
 
       await tester.tap(find.text('Retry'));
       await settle(tester);
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(retries, 1);
       expect(second, same(entry));

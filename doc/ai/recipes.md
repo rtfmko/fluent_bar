@@ -1,6 +1,6 @@
 # Recipes and other packages
 
-Version: 1.0.0. Read this for a ready solution to a common task, or before writing glue code for dio, bloc, provider, riverpod, Firebase and others.
+Version: 1.0.1. Read this for a ready solution to a common task, or before writing glue code for dio, bloc, provider, riverpod, Firebase and others.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Recipes

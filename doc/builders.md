@@ -1,6 +1,6 @@
 # Builders
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Builders: replace any part
 
@@ -19,7 +19,7 @@ config (see [Overriding settings](settings.md#overriding-settings)).
 | The action button | `FluentBarActions(builder: (context, controller, type, mode) => …)` | - | - |
 | The icon | `.withIcon()` | `icon` | theme `defaultIcon` |
 | The close icon | `.withCloseButton(icon: …)` | `closeIcon` | theme `closeIcon` |
-| Container, countdown line | `.withTheme()` with the theme hooks `wrapContainer`, `buildTimeoutBar` | theme only | `defaultTheme` |
+| Container, countdown line | `.withTheme()` with the theme hooks `wrapContainer`, `wrapInteractiveContainer`, `buildTimeoutBar` | theme only | `defaultTheme` |
 
 ```dart
 // Your own content. The entry gives you the texts and the controller.
@@ -47,6 +47,15 @@ of the bar or of the config; adjust a built-in one with `FluentBarTheme.material
 comes from `position` (the bar, then its type, then the config). A top bar that a builder draws at
 the bottom still waits behind the other top bars. See
 [Regions and the queue](queue.md#regions-and-the-queue).
+
+Two widgets of the default bar are public, so your own content can keep the standard look.
+`FluentBarTaskProgressWidget(progressNotifier:, theme:, defaultColor:, successIcon:, textEffect:,
+afterSuccess:)` draws the indicator; `textEffect` defaults to the theme's, and `afterSuccess` is
+what replaces the success icon when its time runs out (`null`: the indicator collapses).
+`FluentBarProgressLabel(text:, style:, effect:, duration:, value:)` draws a text with the text
+effects; `value` gives the direction of `roll` and `flip`. `FluentBarCloseButton` takes the
+`controller`, an `icon`, a `size` (18), a `color`, a `padding` and a `semanticLabel`, the text a
+screen reader reads for the button.
 
 A builder that throws does not break the bar: the error is reported and the default part is drawn.
 

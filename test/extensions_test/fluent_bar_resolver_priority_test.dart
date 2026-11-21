@@ -486,6 +486,10 @@ void main() {
     });
 
     testWidgets('a throwing builder falls back instead of crashing', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
       final BuildContext context = await pumpContext(tester);
       const FluentBarConfig config = FluentBarConfig();
       const Widget child = SizedBox(key: Key('child'));
@@ -501,6 +505,7 @@ void main() {
       expect(entry.resolvePositionBuilder(config)!(context, child), same(child));
       expect(entry.resolveTransitionBuilder(config)!(context, kAlwaysCompleteAnimation, child), same(child));
       expect(entry.resolveBuilder(config)!(context, entry), isNull);
+      expect(errors.map((FluentBarException e) => e.type), containsAll(<FluentBarErrorType>[FluentBarErrorType.customBuilderAppearance, FluentBarErrorType.customBuilderTransition]));
     });
   });
 

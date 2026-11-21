@@ -1,6 +1,6 @@
 # Troubleshooting
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Troubleshooting
 
@@ -103,7 +103,7 @@ type, then the theme.
 - On the bar: the bar does not close on tap (`dismissOnTap(false)`, or the `toast`, `banner` and
   `loading` presets), or it is loading (`setLoading` turns gestures off).
 - On the button: its handler is still running (the button shows a loader), or the second tap came
-  within 400 ms of the first (`throttleDuration`).
+  within `throttleDuration` (400 ms) of the last tap that counted; a blocked tap does not extend the window.
 
 ### A bar of a screen stays after the screen is closed
 

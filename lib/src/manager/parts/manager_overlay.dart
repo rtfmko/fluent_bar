@@ -46,7 +46,7 @@ extension FluentBarManagerOverlay on FluentBarManager {
       FluentBarErrorHandler.instance.handle(error, FluentBarErrorType.overlay, stackTrace);
       overlayEntry.dispose();
       _activeItems[region] = null;
-      _discard(entry, event: FluentBarAnalyticsEvent.dismissed);
+      _discard(entry, reason: FluentBarDismissReason.manual);
       return;
     }
     _activeOverlayEntries[region] = overlayEntry;

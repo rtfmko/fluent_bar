@@ -29,6 +29,8 @@ class _LiveNotifier<T> extends ChangeNotifier with FrameSafeNotifier implements 
 
   @override
   void addListener(VoidCallback listener) {
+    // The bar has ended: there is nothing more to hear (see [_EndedSafeValueNotifier]).
+    if (_isDisposed) return;
     final bool wasObserved = isObserved;
     super.addListener(listener);
     if (!wasObserved) _onObservedChanged();
@@ -44,6 +46,29 @@ class _LiveNotifier<T> extends ChangeNotifier with FrameSafeNotifier implements 
   @override
   void dispose() {
     _isDisposed = true;
+    super.dispose();
+  }
+}
+
+/// A notifier of the controller that may still be listened to after the bar has ended.
+///
+/// The code that shows a bar keeps its entry and may add or remove a listener at any time,
+/// also after the end. A disposed [ChangeNotifier] throws on `addListener`; this one ignores it:
+/// the bar will not change any more. `removeListener` is always allowed.
+class _EndedSafeValueNotifier<T> extends FrameSafeValueNotifier<T> {
+  _EndedSafeValueNotifier(super.value);
+
+  bool _isEnded = false;
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (_isEnded) return;
+    super.addListener(listener);
+  }
+
+  @override
+  void dispose() {
+    _isEnded = true;
     super.dispose();
   }
 }

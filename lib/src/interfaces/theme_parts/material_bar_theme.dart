@@ -5,7 +5,7 @@ class _MaterialBarTheme extends FluentBarTheme {
 
   @override
   BoxDecoration boxDecoration(BuildContext context, FluentBarType type, FluentBarTheme theme, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return BoxDecoration(
       color: theme.backgroundColor(context, type, themeMode: themeMode),
@@ -35,7 +35,7 @@ class _MaterialBarTheme extends FluentBarTheme {
 
   @override
   Widget? buildTimeoutBar(BuildContext context, FluentBarEntry<dynamic> entry, FluentBarTheme theme, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return _buildLinearTimeoutBar(
       context,

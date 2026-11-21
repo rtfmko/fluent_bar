@@ -1,6 +1,6 @@
 # Themes, types and builders
 
-Version: 1.0.0. Read this to change how bars look: themes, light and dark, custom types, replacing a part of the bar.
+Version: 1.0.1. Read this to change how bars look: themes, light and dark, custom types, replacing a part of the bar.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Themes
@@ -51,7 +51,8 @@ FluentBar.patchConfig((c) => c.copyWith(
   typeOverrides: {FluentBarType.error: FluentBarType.error.copyWith(duration: const Duration(seconds: 8))},
 ));
 
-// Your own type: override only the getters that differ; null or not overridden = the config decides.
+// Your own type: override only the getters that differ; null or not overridden = the config decides
+// (not for haptic, progressCompletedHaptic, priority: bar, then type, then their default).
 class AchievementType extends FluentBarType {
   const AchievementType();
   @override String get name => 'achievement';
@@ -69,6 +70,13 @@ FluentBar.custom<void>(const AchievementType(), 'Ten days in a row!').show();
 - A getter that throws is reported and replaced by its default. Code that reads the getters of a
   type it did not create can use `FluentBarType.guard(type)`.
 - The full list of getters and their place in the lookup order: `settings.md`.
+
+Layout and text: on a narrow bar (content row under about 150 px at text scale 1, scaled with the
+text size) the action goes under the text. Unpaired UTF-16 surrogates in the title, message, action
+label and progress label are replaced by U+FFFD, so `Text` does not throw. The `windows` theme has a
+readable action color in dark mode. `FluentBarTheme.isDarkMode` that throws is reported once per
+frame as `darkMode`: a subclass gets the light variant, a `copyWith(isDarkMode:)` gets the answer of
+the base theme.
 
 ## Builders (replace a part of the bar)
 
@@ -91,8 +99,10 @@ Inside `withContent` you still get the queue, timers, gestures and animations; u
 
 Two widgets of the default bar are public, so custom content can keep the standard look:
 `FluentBarTaskProgressWidget(progressNotifier: entry.controller.progressStateNotifier, theme: …,
-defaultColor: …, successIcon: …)` draws the indicator, and `FluentBarProgressLabel(text: …,
-style: …, effect: …, duration: …)` draws a text with the roll / flip / fade effects.
+defaultColor: …, successIcon: …, textEffect: …, afterSuccess: …)` draws the indicator (`textEffect`
+defaults to the theme's; `afterSuccess` is the widget shown when the success icon time runs out, and
+`null` collapses the indicator), and `FluentBarProgressLabel(text: …, style: …, effect: …, duration: …,
+value: …)` (`value` gives the direction of `roll` and `flip`) draws a text with the roll / flip / fade effects.
 Builder signatures: `progressBuilder: (context, ValueListenable<FluentBarProgressState?> notifier) => Widget`,
 `labelBuilder: (FluentBarProgressState state) => String`,
 `customEffectBuilder: (context, AnimationController controller, child) => Widget`.

@@ -137,9 +137,9 @@ void main() {
       return tester.widget<Icon>(find.descendant(of: find.byKey(const ValueKey<String>('success_icon')), matching: find.byType(Icon))).size!;
     }
 
-    testWidgets('circular beside the content: the icon matches the diameter of the ring', (WidgetTester tester) async {
+    testWidgets('circular beside the content: the icon takes the place of the icon of the bar and has its size', (WidgetTester tester) async {
       const FluentBarProgressTheme theme = FluentBarProgressTheme(style: FluentBarProgressStyle.circular, position: FluentBarProgressPosition.left, size: 44);
-      expect(await successIconSize(tester, theme), 44);
+      expect(await successIconSize(tester, theme), 30);
     });
 
     testWidgets('linear, or replacing the icon: the icon matches the icon size of the bar', (WidgetTester tester) async {

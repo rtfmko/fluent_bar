@@ -1,6 +1,6 @@
 # Global config and overriding settings
 
-Version: 1.0.0. Read this to set defaults for every bar, or to find which level (bar, type, config) a value comes from.
+Version: 1.0.1. Read this to set defaults for every bar, or to find which level (bar, type, config) a value comes from.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Global config (`FluentBarConfig`)
@@ -83,6 +83,10 @@ Every setting and its three places. Read a row left to right; the first filled p
 | Transition builder | - | `appearance.transitionBuilder` | `transitionBuilder` | `defaultTransitionBuilder` |
 | Effect builder | - | `appearance.customEffectBuilder` | `customEffectBuilder` | - |
 
+A type has three more getters, not in the table: `timeoutBarColor`, `customHaptic` and
+`customProgressCompletedHaptic`. `haptic`, `progressCompletedHaptic` and `priority` have no config
+level: bar, then type, then their default (`none`, `none`, `normal`).
+
 Visual details that only a theme knows (`padding`, `margin`, `decoration`, `constraints`, text
 styles, line limits, alignment, overflow) resolve bar → theme: `FluentBarAppearance(…)` for one
 bar, `FluentBarTheme.x.copyWith(…)` for all.
@@ -91,7 +95,7 @@ Choose the level by how many bars need the value:
 
 | Scope | Where to put it |
 |---|---|
-| Every bar | `FluentBarConfig` through `FluentBar.patchConfig` (applies at once, also to visible bars) |
+| Every bar | `FluentBarConfig` through `FluentBar.patchConfig` (applies at once, also to visible bars; a running countdown keeps its length, so `defaultDuration` reaches later bars) |
 | A built-in type everywhere | `typeOverrides` in the config |
 | A group of bars | a custom `FluentBarType`, or `FluentBarType.x.copyWith(…)` kept in a variable |
 | One bar | the `.with…()` chain or `FluentBarOptions(behavior:, appearance:)` |

@@ -11,7 +11,7 @@ class _CupertinoBarTheme extends FluentBarTheme {
 
   @override
   BoxDecoration boxDecoration(BuildContext context, FluentBarType type, FluentBarTheme theme, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return BoxDecoration(
       color: theme.backgroundColor(context, type, themeMode: themeMode),
@@ -24,7 +24,7 @@ class _CupertinoBarTheme extends FluentBarTheme {
   Color backgroundColor(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
     if (type.backgroundColor != null) return type.backgroundColor!;
 
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return dark ? CupertinoColors.systemBackground.darkColor.withValues(alpha: 0.85) : CupertinoColors.systemBackground.color.withValues(alpha: 0.85);
   }
 
@@ -42,19 +42,19 @@ class _CupertinoBarTheme extends FluentBarTheme {
 
   @override
   TextStyle titleStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(color: dark ? CupertinoColors.label.darkColor : CupertinoColors.label.color, fontWeight: FontWeight.w600, fontSize: 14);
   }
 
   @override
   TextStyle messageStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(color: dark ? CupertinoColors.secondaryLabel.darkColor : CupertinoColors.secondaryLabel.color, fontSize: 13);
   }
 
   @override
   TextStyle actionStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(color: dark ? CupertinoColors.activeBlue.darkColor : CupertinoColors.activeBlue.color, fontWeight: FontWeight.w600, fontSize: 14);
   }
 

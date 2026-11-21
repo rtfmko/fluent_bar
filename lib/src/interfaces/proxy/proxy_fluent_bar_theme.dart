@@ -141,7 +141,7 @@ class _ProxyFluentBarTheme extends FluentBarTheme {
   /// light / dark, and the base theme builds every color and style from it instead of deciding itself.
   FluentBarThemeMode? _mode(BuildContext context, FluentBarType type, FluentBarThemeMode? themeMode) {
     if (overriddenDarkMode == null) return themeMode;
-    return isDarkMode(context, type, themeMode: themeMode) ? FluentBarThemeMode.dark : FluentBarThemeMode.light;
+    return _dark(context, type, themeMode) ? FluentBarThemeMode.dark : FluentBarThemeMode.light;
   }
 
   /// The guard for every copyWith override.
@@ -183,7 +183,9 @@ class _ProxyFluentBarTheme extends FluentBarTheme {
   @override
   bool isDarkMode(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
     final bool Function(BuildContext context, FluentBarType type, FluentBarThemeMode? themeMode)? override = overriddenDarkMode;
-    return _resolve<bool>('isDarkMode', override == null ? null : () => override(context, type, themeMode), () => baseType.isDarkMode(context, type, themeMode: themeMode));
+    if (override == null) return baseType._dark(context, type, themeMode);
+
+    return _guardedDark(this, () => override(context, type, themeMode), orElse: () => baseType._dark(context, type, themeMode));
   }
 
   @override

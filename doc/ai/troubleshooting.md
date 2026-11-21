@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Version: 1.0.0. Read this when something behaves unexpectedly or the user reports a problem with a bar.
+Version: 1.0.1. Read this when something behaves unexpectedly or the user reports a problem with a bar.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Troubleshooting
@@ -25,7 +25,7 @@ try/catch, a second bar): each case below has a direct answer.
 | An `error` bar stays 6 s although `defaultDuration` is 4 s | the built-in `error` type sets its own duration (and `high` priority, no swipe); a type beats the config | `typeOverrides: {FluentBarType.error: FluentBarType.error.copyWith(duration: …)}` or the duration on the bar |
 | The icon of a type does not show | the bar has its own `.withIcon(…)`; the bar beats its type | remove the icon from the bar |
 | Taps on the bar do nothing | `dismissOnTap(false)`, the `toast` / `banner` / `loading` presets, or the bar is loading (`setLoading` turns gestures off) | `.dismissOnTap()` on the bar, or finish the loading |
-| Taps on the button do nothing | its handler still runs (a loader shows), or the second tap came within `throttleDuration` (400 ms) | expected; do not add your own debounce |
+| Taps on the button do nothing | its handler still runs (a loader shows), or the second tap came within `throttleDuration` (400 ms) of the last accepted tap (blocked taps do not extend it) | expected; do not add your own debounce |
 | A bar of a screen stays after the screen is closed | bars live above every navigator | `.withTag('screen')` and `FluentBarOwner(tag: 'screen', …)` in the screen; see `queue.md` |
 
 ```dart

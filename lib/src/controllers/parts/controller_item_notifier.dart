@@ -4,9 +4,23 @@ class _ItemNotifier<T> extends ChangeNotifier with FrameSafeNotifier implements 
   _ItemNotifier(this._value);
 
   FluentBarItem<T> _value;
+  bool _isEnded = false;
 
   @override
   FluentBarItem<T> get value => _value;
+
+  /// See [_EndedSafeValueNotifier]: after the end a new listener is ignored.
+  @override
+  void addListener(VoidCallback listener) {
+    if (_isEnded) return;
+    super.addListener(listener);
+  }
+
+  @override
+  void dispose() {
+    _isEnded = true;
+    super.dispose();
+  }
 
   set value(FluentBarItem<T> next) {
     final FluentBarItem<T> previous = _value;

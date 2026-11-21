@@ -1,3 +1,45 @@
+## 1.0.1
+
+Bug fixes. No API changes.
+
+### Queue and lifecycle
+
+* A waiting bar removed by `close`, `closeAll`, `closeTag`, `clearQueue`, `dismissAndClear` or a `FluentBarOwner` leaving the tree now ends like a shown bar: `onDismiss` runs once and `dismissed` fires once, with the reason given to the call (`closeAll(reason:)`, `close(id, reason:)` and `closeTag(reason:)` no longer drop it for waiting bars).
+* A waiting bar pushed out of the queue (by a forced bar, a lower `maxQueueLength`, a queue strategy or a relocation) gets `queueOverflow`, then `dismissed` with `dropped`, and `onDismiss` once. Before, it got no `dismissed` event and no `onDismiss`.
+* The `onDismiss` and the events of waiting bars run after the call that ended them has finished with the queues, so a bar shown from such an `onDismiss` is not removed by that call.
+* A bar that cannot be inserted into the overlay ends with `onDismiss` too (reason `manual`), like any other bar that ends.
+* `FluentBar.forceItem` and forcing a bar find duplicates the way `show` does: forcing the id of a bar on screen or in the queue updates that bar instead of putting the id in two places.
+* An `ignore` duplicate of a waiting progress bar passes on only its progress; it no longer changes the waiting bar's priority.
+* `updateConfig`, `patchConfig` and a rebuilt `FluentBarScope` with an equal config do nothing: no rebuild of the bars, no queue rebalance.
+
+### Errors
+
+* With no error handler registered, errors (not warnings) go to `FlutterError.reportError`, in release builds too. Before, they were only printed in debug builds.
+* A content widget (`withContent`, a type's `builder`, `defaultBuilder`), a custom icon or an action widget that throws while building, laying out or painting is reported and replaced by the default; Flutter's error widget no longer appears in the bar.
+* `updateValue` / `updateFraction` with a value out of range, and `shake` / `pulse` with a non-finite intensity, are ignored and reported as an `invalidCall` warning instead of failing an assert. The asserts on `FluentBarProgressState.value` and `fraction` are gone.
+* A theme's `isDarkMode` is called through the error handler: a throw is reported once per theme as `darkMode`; a theme subclass gets the light variant, a `copyWith(isDarkMode:)` the answer of the base theme.
+* Listening to the notifiers of a bar that has ended no longer throws.
+* Unpaired UTF-16 surrogates in a title, message, action label or progress label are replaced with U+FFFD instead of breaking the text.
+
+### Progress
+
+* `failProgress(isPersistent: false)` lets a persistent bar leave by its timer.
+* `completeProgress` after `failProgress` takes the success type, unless a type is given.
+* A progress re-show with the same id and no title removes the title.
+* A completed ring leaves one icon; a linear indicator in place of the icon shows its whole label (`3 / 8`, `40%`); the label inside a ring is larger.
+
+### Layout and look
+
+* On very small screens and at large text scales the bar clips its content instead of overflowing.
+* On narrow bars the action moves under the text, so the message keeps a usable width; the action keeps its state when it moves.
+* `windows` theme, dark: the action text has a readable colour.
+* The action throttle counts a fixed window from the last accepted tap, on the library clock.
+
+### Docs and package
+
+* The docs now match the code: corrected signatures, defaults and behaviour, and every public member is described in the guide for people and the guide for AI assistants.
+* Working files no longer ship in the package (7 MB less).
+
 ## 1.0.0
 
 Initial release.

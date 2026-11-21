@@ -1,10 +1,10 @@
 # Queue and duplicates
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Regions and the queue
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/queue.gif" width="300" alt="Five bars shown one after another"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/queue.gif" width="300" alt="Five bars shown one after another"></p>
 
 The screen has **two regions**, and each one shows **one bar at a time** and keeps its own queue:
 
@@ -33,10 +33,21 @@ What to expect:
 
 - A bar leaves the queue when the bar in its region closes. Nothing is shown "on top".
 - A **forced** bar does not wait: it closes the bar on screen (dismiss reason `force`) and appears.
-  Only another forced bar makes it wait.
-- Each region holds up to `maxQueueLength` waiting bars (15 by default). One more is **dropped**:
+  Only a forced bar that is on screen makes another forced bar wait. A bar shown with
+  `forceItem` or `forceItemFromQueue` counts as forced from then on. A waiting bar that becomes forced
+  by an update replaces a non-forced bar on screen in the same way.
+- Each region holds up to `maxQueueLength` waiting bars (1 to 100, 15 by default). One more is **dropped**:
   `show()` returns `null`, a warning goes to the error handlers and a `queueOverflow` event to
-  analytics. A forced bar is never dropped: if the queue is full, the last waiting bar gives way.
+  analytics. Priority does not decide this: a regular bar that does not fit is dropped, however
+  important it is. A forced bar is not turned away: when the queue is full it pushes out the last waiting bar,
+  a forced one included. A bar pushed out (by a forced bar, a lower `maxQueueLength` or a queue strategy
+  that leaves it out) gets the `queueOverflow` event and then `dismissed` with the reason `dropped`, and
+  its `onDismiss` runs once. A bar that does not fit when it is shown is not created at all: `show()`
+  returns `null`, only `queueOverflow` is reported and there is no `onDismiss`. The `onDismiss` and the
+  events of waiting bars run after the call that ended them has finished with the queues, so a bar you
+  show from that `onDismiss` is queued or shown as usual and the same call does not remove it.
+- The countdown of a bar starts when its entrance animation is over (state `visible`), not when it
+  is requested; a waiting bar has no countdown yet.
 - Bars requested before the overlay exists (for example in `main()`) wait and appear later.
 
 **Other strategies**, set with `defaultQueueStrategy`: `FifoQueueStrategy` (in the order of
@@ -106,9 +117,28 @@ FluentBar.patchConfig((config) => config.copyWith(defaultDuplicatePolicy: Fluent
 Details worth knowing:
 
 - If both bars carry progress, only the progress, the texts and the type are taken from the new
-  one. The button, callbacks and look of the bar on screen stay.
+  one; a new bar without a title removes the title. The button, callbacks and look of the bar on screen stay.
 - If the existing bar is still waiting, the two are merged in the queue: the higher priority wins,
-  and the bar becomes forced if either of them is.
+  and the bar becomes forced if either of them is. This holds for progress bars as well; the rule
+  above is for the bar on screen.
+- `forceItem` and `.force()` look for duplicates the same way `show()` does: a bar with the same
+  `id` on screen is updated in place, a waiting one is updated and shown at once. You get the same
+  entry back, never a second bar.
+- A duplicate with the policy `ignore` never changes the waiting bar; if it carries a new progress,
+  only the progress is applied.
+- A duplicate replaces the existing bar as a whole, not field by field: the text, behavior, button
+  and look come from the new one. Only a running progress is carried over, as described above.
+- When a bar moves to the other region and that region is busy, `FluentBarRelocationStrategy.queueNext`
+  puts it before the waiting bars that are not forced (`forceReplace` shows it in place of the bar
+  there, `ignore` keeps it in its region). That is its place only at the moment of the
+  move: afterwards it is sorted like any bar, so a forced or more important bar that arrives later
+  goes before it.
+- With `allow`, calls by `id` (`find`, `close`, an update, `updateItemPriority`) reach the first bar
+  with that id: the one on screen, then the queue in its order. To reach one specific bar, keep its
+  entry and call it directly.
+- Bars without an `id` are compared by their content: the text, type, duration, priority, tags,
+  payload, `meta`, actions, `dismissOnTap` and progress. Callbacks (`onTap`, `onDismiss`) and the
+  internal uuid are not compared. A bar that differs only in its progress is a different bar.
 - Bars with the same `id` but different type arguments (`<void>` and `<Order>`) are **not**
   duplicates; the library warns about it. Use one type argument per `id`.
 
@@ -130,11 +160,11 @@ FluentBar.info<void>('I booked a table').withTitle('Alex').withMeta({'chat': 'al
 
 ## Bars of one screen
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/tags.gif" width="300" alt="Three checkout bars disappear when the checkout panel leaves the screen"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/tags.gif" width="300" alt="Three checkout bars disappear when the checkout panel leaves the screen"></p>
 
 Bars live above every screen, so a bar outlives the screen that showed it. Usually that is the
 point: "Saved" should still be there after the form closes. A bar that makes sense only on its
-screen gets a **tag**, and the tag closes the whole group, the queued bars included:
+screen gets a **tag**, and the tag closes the whole group, the queued bars included (each of them gets its `onDismiss` and a `dismissed` event, like a bar that was on screen):
 
 ```dart
 FluentBar.error<void>('Card declined').withTag('checkout').show();

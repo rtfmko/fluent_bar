@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:fluent_bar/src/internal.dart';
 import 'package:flutter/material.dart';
 
@@ -50,7 +52,12 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
   Widget _buildContent(BuildContext context, FluentBarType resolvedType, FluentBarTheme theme, FluentBarThemeMode themeMode) {
     final FluentBarAppearance<T> appearance = entry.currentItem.appearance;
     final FluentBarProgressState? progressState = entry.currentItem.progressState;
-    final FluentBarProgressTheme progressTheme = entry.resolveProgressTheme(config);
+    final FluentBarProgressTheme configuredProgress = entry.resolveProgressTheme(config);
+    final bool hasProgressBuilder = progressState != null && entry.resolveProgressBuilder(config) != null;
+    // A finished ring leaves one icon: the success icon takes the place of the bar's own icon,
+    // wherever the ring was. A line keeps its place (the bar does not change its size), and a custom indicator draws its own end.
+    final bool completesInIcon = !hasProgressBuilder && configuredProgress.isCircular && (progressState?.isCompleted ?? false) && configuredProgress.position != FluentBarProgressPosition.replaceIcon;
+    final FluentBarProgressTheme progressTheme = completesInIcon ? const FluentBarProgressTheme(position: FluentBarProgressPosition.replaceIcon).mergedOver(configuredProgress) : configuredProgress;
 
     // The theme is user code and these values are needed in several places: compute each one once,
     // and only if it is needed.
@@ -128,10 +135,20 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
     // switch animation plays. See [_iconIdentity].
     Widget? activeIcon;
     Key? iconKey;
+    // The indicator in the icon slot needs more than an icon: a ring with a text inside, a line with a text under it.
+    double slotWidth = iconSize;
+    double slotHeight = iconSize;
+    if (taskProgressWidget != null && progressTheme.position == FluentBarProgressPosition.replaceIcon && !hasProgressBuilder && !(progressState?.isCompleted ?? false) && progressTheme.showText) {
+      if (progressTheme.isCircular) {
+        slotWidth = slotHeight = math.max(iconSize, _minRingWithText);
+      } else {
+        slotWidth = math.max(iconSize, _minLineInSlot);
+      }
+    }
     if (taskProgressWidget != null && progressTheme.position == FluentBarProgressPosition.replaceIcon) {
       activeIcon = SizedBox(
-        width: iconSize,
-        height: iconSize,
+        width: slotWidth,
+        height: slotHeight,
         child: Center(child: taskProgressWidget),
       );
       // An indicator in the icon slot stays the same widget whatever happens to the type of the bar:
@@ -140,8 +157,25 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
       taskProgressWidget = null;
     } else if (entry.resolveShowIcon(config)) {
       final Widget? ownIcon = appearance.icon;
-      activeIcon = entry.resolveIcon(context, theme, themeMode, config, size: iconSize);
-      iconKey = ValueKey<Object>(ownIcon != null ? _iconIdentity(ownIcon) : (resolvedType.name, _iconIdentity(activeIcon)));
+      final Widget resolvedIcon = entry.resolveIcon(context, theme, themeMode, config, size: iconSize);
+      iconKey = ValueKey<Object>(ownIcon != null ? _iconIdentity(ownIcon) : (resolvedType.name, _iconIdentity(resolvedIcon)));
+      // A widget of the user that fails in build, layout or paint is replaced by the default icon.
+      if (ownIcon != null || resolvedType.icon != null) {
+        final double fallbackSize = iconSize;
+        activeIcon = FluentBarUserWidgetGuard(
+          type: FluentBarErrorType.customBuilderAppearance,
+          debugContext: 'icon',
+          fallback: (BuildContext context) => FluentBarErrorHandler.instance.executeSafe<Widget>(
+            overrideCall: () => theme.defaultIcon(context, resolvedType, themeMode: themeMode, overrideSize: fallbackSize),
+            fallbackCall: () => const SizedBox.shrink(),
+            type: FluentBarErrorType.fluentBarTheme,
+            debugContext: 'defaultIcon',
+          ),
+          child: resolvedIcon,
+        );
+      } else {
+        activeIcon = resolvedIcon;
+      }
     }
 
     final TextDirection textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
@@ -156,6 +190,8 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
       final Widget icon = activeIcon;
       // Read here, in the guarded build: the color fade calls its builder later.
       final double size = iconSize;
+      final double width = slotWidth;
+      final double height = slotHeight;
 
       activeIconWidget = KeyedSubtree(
         key: iconKey,
@@ -167,8 +203,8 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
             builder: (BuildContext context, Color? color) => IconTheme(
               data: IconThemeData(color: color, size: size),
               child: SizedBox(
-                width: size,
-                height: size,
+                width: width,
+                height: height,
                 child: Center(child: icon),
               ),
             ),
@@ -196,43 +232,45 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
       ),
     );
 
-    rowChildren.add(
-      Expanded(
+    final int textIndex = rowChildren.length;
+    // The theme is user code: its values are read here, in the guarded build, and not in the layout builder below.
+    final String? title = entry.currentItem.title;
+    final TextStyle titleStyle = theme.titleStyle(context, resolvedType, themeMode: themeMode);
+    final double titleSpacing = theme.titleSpacing(context, resolvedType, themeMode: themeMode);
+    final TextAlign? titleAlign = entry.resolveTitleTextAlign(context, theme, themeMode, config);
+    final int titleLines = entry.resolveMaxTitleLines(context, theme, themeMode, config);
+    final TextOverflow? titleOverflow = entry.resolveTitleOverflow(context, theme, themeMode, config);
+    final TextStyle messageStyle = theme.messageStyle(context, resolvedType, themeMode: themeMode);
+    final TextAlign? messageAlign = entry.resolveMessageTextAlign(context, theme, themeMode, config);
+    final int messageLines = entry.resolveMaxMessageLines(context, theme, themeMode, config);
+    final TextOverflow? messageOverflow = entry.resolveMessageOverflow(context, theme, themeMode, config);
+    // The texts get all the height they want and are clipped to the bar: a screen smaller than the text must not overflow.
+    // Widgets of the user keep the height limit of the bar.
+    Widget textColumn({Widget? below}) => Expanded(
+      child: FluentBarClampedHeight(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (entry.currentItem.title != null) ...<Widget>[
-              _fadingText(
-                entry.currentItem.title!,
-                theme.titleStyle(context, resolvedType, themeMode: themeMode),
-                restyle,
-                textAlign: entry.resolveTitleTextAlign(context, theme, themeMode, config),
-                maxLines: entry.resolveMaxTitleLines(context, theme, themeMode, config),
-                overflow: entry.resolveTitleOverflow(context, theme, themeMode, config),
-              ),
-              SizedBox(height: theme.titleSpacing(context, resolvedType, themeMode: themeMode)),
-            ],
-            _fadingText(
-              entry.currentItem.message,
-              theme.messageStyle(context, resolvedType, themeMode: themeMode),
-              restyle,
-              textAlign: entry.resolveMessageTextAlign(context, theme, themeMode, config),
-              maxLines: entry.resolveMaxMessageLines(context, theme, themeMode, config),
-              overflow: entry.resolveMessageOverflow(context, theme, themeMode, config),
-            ),
+            if (title != null) ...<Widget>[_fadingText(title, titleStyle, restyle, textAlign: titleAlign, maxLines: titleLines, overflow: titleOverflow), SizedBox(height: titleSpacing)],
+            _fadingText(entry.currentItem.message, messageStyle, restyle, textAlign: messageAlign, maxLines: messageLines, overflow: messageOverflow),
+            ?below,
           ],
         ),
       ),
     );
+    rowChildren.add(const SizedBox.shrink());
 
     if (taskProgressWidget != null && progressTheme.position == FluentBarProgressPosition.right) {
       rowChildren.addAll(<Widget>[SizedBox(width: spacing), Flexible(fit: FlexFit.loose, child: taskProgressWidget)]);
     }
 
-    rowChildren.add(
+    // One key for the slot: it keeps its state when the layout moves it beside or under the text.
+    final GlobalKey actionsKey = _actionKeys[entry] ??= GlobalKey(debugLabel: 'fluent_bar_actions');
+    final Widget actionsSlot = KeyedSubtree(
+      key: actionsKey,
       // AnimatedSize clips only a child larger than its box, and a leaving button takes no room.
-      ClipRect(
+      child: ClipRect(
         child: AnimatedSize(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOutCubic,
@@ -261,14 +299,36 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
 
     // Always the same two-level row, with or without the button: turning the button on for a
     // visible bar must not rebuild the content next to it.
+    // Where the screen (or the text scale) leaves the text too little room, the action goes under
+    // the text instead of beside it.
+    final double textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final Widget innerRow = LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool stacked = constraints.maxWidth < _stackActionBelow * textScale;
+        final List<Widget> children = <Widget>[...rowChildren];
+        children[textIndex] = textColumn(
+          below: stacked
+              ? Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: constraints.maxHeight),
+                    child: actionsSlot,
+                  ),
+                )
+              : null,
+        );
+        if (!stacked) children.add(actionsSlot);
+
+        return Row(mainAxisSize: MainAxisSize.min, children: children);
+      },
+    );
+
     Widget content = Row(
       mainAxisSize: MainAxisSize.min,
       // Only the three placements make sense here; stretch and baseline would break the bar.
       crossAxisAlignment: closeAlignment == CrossAxisAlignment.start || closeAlignment == CrossAxisAlignment.end ? closeAlignment : CrossAxisAlignment.center,
       children: <Widget>[
-        Expanded(
-          child: Row(mainAxisSize: MainAxisSize.min, children: rowChildren),
-        ),
+        Expanded(child: innerRow),
         if (showCloseButton)
           Padding(
             padding: EdgeInsetsDirectional.only(start: spacing / 2),
@@ -283,14 +343,16 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
     );
 
     if (taskProgressWidget != null && (progressTheme.position == FluentBarProgressPosition.top || progressTheme.position == FluentBarProgressPosition.bottom)) {
-      content = Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          if (progressTheme.position == FluentBarProgressPosition.top) ...<Widget>[taskProgressWidget, SizedBox(height: spacing)],
-          content,
-          if (progressTheme.position == FluentBarProgressPosition.bottom) ...<Widget>[SizedBox(height: spacing), taskProgressWidget],
-        ],
+      content = FluentBarClampedHeight(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (progressTheme.position == FluentBarProgressPosition.top) ...<Widget>[taskProgressWidget, SizedBox(height: spacing)],
+            content,
+            if (progressTheme.position == FluentBarProgressPosition.bottom) ...<Widget>[SizedBox(height: spacing), taskProgressWidget],
+          ],
+        ),
       );
     }
 
@@ -314,6 +376,7 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
       }
     }
 
+    // A bar on a screen too small for its content is cut off instead of overflowing.
     Widget innerContent = Padding(padding: entry.resolvePadding(context, theme, themeMode, config), child: content);
 
     if (animatedProgressBar != null) {
@@ -341,6 +404,18 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
     return theme.wrapInteractiveContainer(context, wrappedContainer, resolvedType, themeMode: themeMode);
   }
 
+  /// The key of the action slot of each bar.
+  static final Expando<GlobalKey> _actionKeys = Expando<GlobalKey>('fluent_bar_actions');
+
+  /// The side of the icon slot for a ring with its text inside; see `FluentBarTaskProgressWidget`.
+  static const double _minRingWithText = 30;
+
+  /// The width of the icon slot for a line with its text under it.
+  static const double _minLineInSlot = 46;
+
+  /// The width of the content row, at text scale 1, below which the action goes under the text.
+  static const double _stackActionBelow = 150;
+
   /// "Which icon this is", to tell whether it changed. Widgets cannot be compared directly: an
   /// `Icon(Icons.star)` created again is another instance, and the bar would replay the switch
   /// animation on every update. So an icon is the same if the widget type and key match, and
@@ -352,7 +427,7 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
     color: style.color,
     duration: duration,
     builder: (BuildContext context, Color? color) => Text(
-      text,
+      wellFormedText(text),
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
@@ -371,11 +446,16 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
       return Padding(
         key: const ValueKey<String>('custom_actions'),
         padding: EdgeInsetsDirectional.only(start: theme.spacing(context, type, themeMode: themeMode)),
-        child: FluentBarErrorHandler.instance.executeSafe<Widget>(
-          overrideCall: () => actions.builder!(context, entry.controller, type, themeMode),
-          fallbackCall: () => const SizedBox.shrink(key: ValueKey<String>('error_actions')),
+        child: FluentBarUserWidgetGuard(
           type: FluentBarErrorType.customButtonBuilder,
-          debugContext: '_buildActions.builder',
+          debugContext: 'action',
+          fallback: (BuildContext context) => const SizedBox.shrink(),
+          child: FluentBarErrorHandler.instance.executeSafe<Widget>(
+            overrideCall: () => actions.builder!(context, entry.controller, type, themeMode),
+            fallbackCall: () => const SizedBox.shrink(key: ValueKey<String>('error_actions')),
+            type: FluentBarErrorType.customButtonBuilder,
+            debugContext: '_buildActions.builder',
+          ),
         ),
       );
     }
@@ -406,8 +486,11 @@ class DefaultFluentBarWidget<T> extends StatelessWidget {
   ) {
     final Duration restyle = entry.resolveDisableAnimations(config) ? Duration.zero : kFluentBarRestyleDuration;
 
+    final Widget? customChild = actions.child;
     final Widget innerChild =
-        actions.child ??
+        (customChild == null
+            ? null
+            : FluentBarUserWidgetGuard(type: FluentBarErrorType.customButtonBuilder, debugContext: 'action', fallback: (BuildContext context) => const SizedBox.shrink(), child: customChild)) ??
         _fadingText(
           actions.label ?? '',
           theme.actionStyle(context, type, themeMode: themeMode),

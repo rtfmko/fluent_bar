@@ -221,6 +221,11 @@ void main() {
       });
 
       testWidgets('should handle exception thrown by custom progress builder gracefully', (WidgetTester tester) async {
+        final List<FluentBarException> errors = <FluentBarException>[];
+        void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+        FluentBar.addErrorHandler(onError);
+        addTearDown(() => FluentBar.removeErrorHandler(onError));
+
         final FluentBarItem<void> item = FluentBarItem<void>(
           type: FluentBarType.info,
           message: 'Error progress',
@@ -244,6 +249,7 @@ void main() {
         );
 
         expect(find.byType(FluentBarTaskProgressWidget), findsOneWidget);
+        expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.customProgressBuilder));
       });
     });
 
@@ -371,6 +377,11 @@ void main() {
       });
 
       testWidgets('should handle exception thrown by custom action builder gracefully', (WidgetTester tester) async {
+        final List<FluentBarException> errors = <FluentBarException>[];
+        void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+        FluentBar.addErrorHandler(onError);
+        addTearDown(() => FluentBar.removeErrorHandler(onError));
+
         final FluentBarItem<void> item = FluentBarItem<void>(
           type: FluentBarType.info,
           message: 'Action builder error test',
@@ -389,6 +400,7 @@ void main() {
         );
 
         expect(find.text('Action builder error test'), findsOneWidget);
+        expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.customButtonBuilder));
       });
     });
   });

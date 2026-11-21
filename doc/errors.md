@@ -1,6 +1,6 @@
 # Errors
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 The library never lets your code break a bar or the app. When a callback, builder, theme, type
 or queue strategy throws, or when a call cannot be done as asked, the library catches it, reports
@@ -23,10 +23,16 @@ A handler gets a `FluentBarException` and its stack trace:
 | `error` | the original exception your code threw, or a `StateError` / `ArgumentError` that describes the misuse |
 | `stackTrace` | where it happened |
 
-`error.type.displayName` is a short readable name for logs, for example `Callback: OnTap`.
+`error.type.displayName` is a short readable name for logs, for example `Callback: OnTap`; `type.label`
+is the same text when the type has one (`null` otherwise). `FluentBarException` has a constructor
+(`error`, `stackTrace`, `type`, and `severity`, which defaults to `error`) and a `toString` that reads
+`FluentBarException [Callback: OnTap]: <error>`; both are handy for a test of your handler.
 `FluentBar.removeErrorHandler(handler)` unregisters a handler. A handler that throws itself is
 not reported again. In debug builds every report is also printed to the console with a
-`[FluentBar]` prefix, whether a handler is registered or not.
+`[FluentBar]` prefix, whether a handler is registered or not. With no handler registered, a report
+with the severity `error` also goes to `FlutterError.reportError`, in release builds too, so your
+`FlutterError.onError` and crash reporter see it; a `warning` is only printed in debug builds. Once
+you register a handler, the reports go to the handlers only.
 
 ## Severity
 
@@ -55,12 +61,12 @@ Each row says when the report comes and what the library does after it.
 
 | `FluentBarErrorType` | When | What the library does |
 |---|---|---|
-| `customBuilderAppearance` | The content builder (`withContent`, `FluentBarType.builder`, `FluentBarConfig.defaultBuilder`) threw. | Draws the bar with the default content. |
+| `customBuilderAppearance` | The content builder (`withContent`, `FluentBarType.builder`, `FluentBarConfig.defaultBuilder`) threw. | Draws the bar with the default content. The same when the widget the builder returned threw while it was built, laid out or painted: reported once. |
 | `customBuilderTransition` | The transition builder threw. | Shows the bar without the transition. |
 | `customBuilderEffect` | A custom attention effect builder threw. | Draws the bar without the effect. |
 | `customProgressBuilder` | `FluentBarProgressTheme.progressBuilder` threw. | Draws the built-in indicator. |
 | `customButtonBuilder` | The builder of the action button threw. | Leaves the place of the button empty. The bar stays. |
-| `fluentBarResolver` | A position builder, `FluentBarProgressTheme.labelBuilder`, or the `success` / `error` text of `FluentBar.future` threw. | Uses the default: the bar without the position builder, the default progress text, the default message. |
+| `fluentBarResolver` | A position builder, `FluentBarProgressTheme.labelBuilder`, or the `success` / `error` text of `FluentBar.future` threw. | Uses the default: the bar without the position builder, the default progress text. A `FluentBar.future` text that threw is treated as not given: the bar keeps its text and only the type changes. |
 
 ### Callbacks
 
@@ -83,7 +89,7 @@ Each row says when the report comes and what the library does after it.
 |---|---|---|
 | `fluentBarTheme` | A method of a theme threw. | Takes the value from the base theme, or draws the whole bar with the built-in theme of the platform. |
 | `fluentBarType` | A getter of a custom `FluentBarType` threw. | Uses the default value of that getter. |
-| `darkMode` | `FluentBarTheme.isDarkMode` threw. | Uses the light variant. |
+| `darkMode` | `FluentBarTheme.isDarkMode` threw. Reported once per theme. | A theme subclass that throws gets the light variant. A `copyWith(isDarkMode: …)` that throws gets the answer of the base theme. |
 | `queueEnqueue` | `onEnqueue` of a queue strategy threw. | Puts the bar at the end of the queue. |
 | `queueDequeue` | `onDequeue` of a queue strategy threw. | Shows the first bar of the queue. |
 
@@ -98,29 +104,28 @@ Each row says when the report comes and what the library does after it.
 
 | `FluentBarErrorType` | When | What the library does |
 |---|---|---|
-| `overlay` | Bars wait and there is nowhere to show them: no `FluentBarScope`, no `FluentBarObserver`, no `navigatorKey`. Reported once. Also when inserting into the overlay failed. | Keeps the bars in the queue and shows them once an overlay appears. A bar whose insert failed is dropped. |
+| `overlay` | Bars wait and there is nowhere to show them: no `FluentBarScope`, no `FluentBarObserver`, no `navigatorKey`. Reported once, and only when the app is running and a bar is waiting; it can be reported again after an overlay has appeared and gone. | Keeps the bars in the queue and shows them once an overlay appears. |
 | `queueOverflow` | A bar was shown while its queue held `maxQueueLength` bars. | Drops the new bar; `show()` returns `null`. Analytics gets `queueOverflow`. |
-| `payloadTypeMismatch` | A bar was shown with the `id` of a bar on screen that has another payload type, so it cannot update it. | Shows the new bar separately. |
-| `subtractDuration` | `subtractDuration` asked for more time than the bar had left. | Leaves the countdown as it was. |
-| `invalidCall` | A call got arguments that do not fit together: `failProgress` with `retryLabel` but no `onRetry`, or `onRetry` but no `retryLabel`; `addDuration` or `subtractDuration` with a negative amount. | Takes the safe way: the bar fails as usual, without a Retry button and without waiting for an answer; a negative amount changes nothing. |
+| `payloadTypeMismatch` | A bar was shown with the `id` of a bar on screen that has another payload type, so it cannot update it. Not reported when `duplicateComparator` is set or the policy is `allow`. | Shows the new bar separately. |
+| `subtractDuration` | `subtractDuration` asked for at least as much time as the bar had left. A persistent bar has no countdown and is skipped without a report. | Leaves the countdown as it was. |
+| `invalidCall` | A call got arguments that do not fit together: `failProgress` with `retryLabel` but no `onRetry`, or `onRetry` but no `retryLabel`; `addDuration` or `subtractDuration` with a negative amount; `updateValue`, `updateFraction` or `updateProgress` with a value outside `0 … 1` (or a fraction with `total <= 0` or `current` outside `0 … total`); `shake`, `bounce`, `pulse`, `heartbeat`, `customEffect` or `triggerEffect` with a NaN or infinite intensity or scale. | Takes the safe way: the bar fails as usual, without a Retry button and without waiting for an answer; a negative amount, a bad progress value or a bad effect argument is ignored. |
 
 ### Setup, reported as an error
+
+Inserting a bar into the overlay can fail as well, for example when the overlay was passed in
+broken. That is reported as `overlay` with the severity `error`, and the bar whose insert failed is
+dropped.
 
 | `FluentBarErrorType` | When | What the library does |
 |---|---|---|
 | `initialization` | `FluentBar.initialize` was called a second time. | Ignores the call. To change settings later use `FluentBar.updateConfig` or `FluentBar.patchConfig`. |
 
-## Asserts
+## Bad progress values
 
-Two values fail an `assert` in debug builds instead of a report, because they are checked in a
-`const` constructor, where nothing can be reported: `FluentBarProgressState.value` outside
-`0.0 … 1.0` (a percent passed by mistake, `value(42)`) and `FluentBarProgressState.fraction` with
-`total <= 0` or `current` outside `0 … total`. In a release build nothing breaks:
-
-- a value at or above the end (`value(42)`, `fraction(9, 5)`) completes the progress: the bar shows
-  the success icon, no number;
-- a value below zero, or a fraction with `total <= 0`, leaves the indicator empty, and the text
-  shows the value as given (`-50%`, `3 / 0`); in place of the icon the text is `0%`.
+A progress value outside `0.0 … 1.0` (a percent passed by mistake, `value(42)`) or a fraction with
+`total <= 0` or `current` outside `0 … total` does not assert and does not throw. The state can be
+created, but when it is passed to `updateValue`, `updateFraction` or `updateProgress` the call is
+ignored and an `invalidCall` warning is reported. Clamp the value first if you want the bar to move.
 
 > **Demo:** [Analytics & safety → When your code throws](https://rtfmko.github.io/fluent_bar/#/analytics/errors) (`analytics/errors`)<br>
 > **API:** [`FluentBarException`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarException-class.html) · [`FluentBarErrorType`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarErrorType.html) · [`FluentBarErrorSeverity`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarErrorSeverity.html)

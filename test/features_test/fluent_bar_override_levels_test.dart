@@ -250,8 +250,8 @@ void main() {
 
       final Rect slot = tester.getRect(find.byType(FluentBarTaskProgressWidget));
       final Rect label = tester.getRect(find.byType(FluentBarProgressLabel));
-      expect(find.text('85%'), findsOneWidget);
-      expect(slot.width, lessThanOrEqualTo(24));
+      expect(find.text('17 / 20'), findsOneWidget);
+      expect(slot.width, lessThanOrEqualTo(56));
       expect(slot.height, lessThanOrEqualTo(24));
       expect(slot.contains(label.topLeft) && slot.contains(label.bottomRight - const Offset(0.01, 0.01)), isTrue);
       expect(tester.takeException(), isNull);
@@ -259,7 +259,7 @@ void main() {
       await cleanup(tester);
     });
 
-    group('in place of the icon only the percent is shown', () {
+    group('in place of the icon', () {
       Future<void> showInIcon(WidgetTester tester, FluentBarProgressState state, {bool isCircular = false, String Function(FluentBarProgressState state)? labelBuilder}) async {
         await boot(tester);
         if (labelBuilder != null) FluentBar.patchConfig((FluentBarConfig c) => c.copyWith(progressTheme: c.progressTheme.copyWith(labelBuilder: labelBuilder)));
@@ -269,33 +269,41 @@ void main() {
       }
 
       for (final bool isCircular in <bool>[false, true]) {
-        final String kind = isCircular ? 'ring' : 'line';
+        final String kind = isCircular ? 'ring: only the percent is shown' : 'line: the whole label is shown';
 
-        testWidgets('$kind: a fraction shows its percent', (WidgetTester tester) async {
+        testWidgets('$kind: a fraction', (WidgetTester tester) async {
           await showInIcon(tester, const FluentBarProgressState.fraction(3, 4), isCircular: isCircular);
-          expect(find.text('75%'), findsOneWidget);
-          expect(find.textContaining('/'), findsNothing);
+          expect(find.text(isCircular ? '75%' : '3 / 4'), findsOneWidget);
+          expect(find.textContaining('/'), isCircular ? findsNothing : findsOneWidget);
           await cleanup(tester);
         });
 
-        testWidgets('$kind: bytes with a total show their percent', (WidgetTester tester) async {
+        testWidgets('$kind: bytes with a total', (WidgetTester tester) async {
           await showInIcon(tester, const FluentBarProgressState.bytes(5242880, 20971520), isCircular: isCircular);
-          expect(find.text('25%'), findsOneWidget);
-          expect(find.textContaining('MB'), findsNothing);
+          if (isCircular) {
+            expect(find.text('25%'), findsOneWidget);
+            expect(find.textContaining('MB'), findsNothing);
+          } else {
+            expect(find.textContaining('MB'), findsOneWidget);
+          }
           await cleanup(tester);
         });
 
-        testWidgets('$kind: bytes without a total show no text', (WidgetTester tester) async {
+        testWidgets('$kind: bytes without a total', (WidgetTester tester) async {
           await showInIcon(tester, const FluentBarProgressState.bytes(5242880, null), isCircular: isCircular);
-          expect(find.byType(FluentBarProgressLabel), findsNothing);
-          expect(find.textContaining('MB'), findsNothing);
+          if (isCircular) {
+            expect(find.byType(FluentBarProgressLabel), findsNothing);
+            expect(find.textContaining('MB'), findsNothing);
+          } else {
+            expect(find.textContaining('MB'), findsOneWidget);
+          }
           await cleanup(tester);
         });
 
-        testWidgets('$kind: a custom label gives way to the percent', (WidgetTester tester) async {
+        testWidgets('$kind: a custom label', (WidgetTester tester) async {
           await showInIcon(tester, const FluentBarProgressState.value(0.4), isCircular: isCircular, labelBuilder: (FluentBarProgressState state) => 'Custom label');
-          expect(find.text('40%'), findsOneWidget);
-          expect(find.text('Custom label'), findsNothing);
+          expect(find.text(isCircular ? '40%' : 'Custom label'), findsOneWidget);
+          expect(find.text('Custom label'), isCircular ? findsNothing : findsOneWidget);
           await cleanup(tester);
         });
       }

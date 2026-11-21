@@ -177,6 +177,11 @@ void main() {
     });
 
     testWidgets('should safely fallback to baseTheme when proxy closures throw exceptions', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
+
       const FluentBarTheme baseTheme = FluentBarTheme.material;
       final FluentBarTheme proxyTheme = baseTheme.copyWith(
         isDarkMode: (BuildContext context, FluentBarType type, FluentBarThemeMode? themeMode) => throw Exception('isDarkMode failure'),
@@ -207,6 +212,8 @@ void main() {
           ),
         ),
       );
+
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.darkMode));
     });
 
     testWidgets('should execute buildProgressBar with reverse progress direction for material and modern themes', (WidgetTester tester) async {
