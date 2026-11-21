@@ -1,6 +1,6 @@
 # Progress
 
-Version: 1.0.0. Read this for a download, an upload, a task with progress, a `Future`, a Cancel or a Retry button.
+Version: 1.0.1. Read this for a download, an upload, a task with progress, a `Future`, a Cancel or a Retry button.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Progress
@@ -27,6 +27,9 @@ entry?.cancelProgress(dismiss: true);                                  // cancel
 `cancelProgress` on a bar whose progress has ended, or that has none, changes nothing and fires
 nothing; only `dismiss: true` still closes the bar.
 
+- A value outside `0…1`, a fraction with `total <= 0` or `current` outside `0…total`, passed to
+  `updateValue`, `updateFraction` or `updateProgress`, is ignored and reported as an `invalidCall`
+  warning; nothing is thrown or asserted.
 - States: `FluentBarProgressState.value(0…1)`, `.fraction(current, total)`,
   `.bytes(received, total)`, `.indeterminate()`.
 - Endless or not is decided by the state, not by a setting: `value`, `fraction` and `bytes` with a
@@ -40,6 +43,8 @@ nothing; only `dismiss: true` still closes the bar.
   (`3.1 / 50 MB`), picks the unit, treats a `null`, zero or negative `total` as "size unknown"
   (indeterminate indicator, text `3.1 MB`) and never asserts on `received > total`. Reaching
   `total` completes the progress. `label`: `FluentBarBytesLabel.amount` (default), `percent`, `both`.
+- `state.format({formatValue, formatFraction, formatIndeterminate})` gives the text the default label
+  shows, for a label of your own. `FluentBarProgressLabel` draws a text with the text effects.
 - A same-id re-show where both bars carry progress updates only progress, texts and type; the
   action, callbacks and look of the existing bar are kept.
 - Look: `FluentBarProgressTheme(style, position, showText, textAlign, textEffect,
@@ -48,10 +53,12 @@ nothing; only `dismiss: true` still closes the bar.
   announceUpdates)`.
   It merges field by field across bar → type → config.
 - With `position: replaceIcon` (the default of `withCircularProgress`; `withLinearProgress` takes
-  it too) the text is always the percent, for a ring and for a line alike: a fraction, bytes and
+  it too) a ring shows only the percent: a fraction, bytes and
   `labelBuilder` show their percent there, and a progress without one (indeterminate, bytes
-  without a total) shows no text. For "3 / 8" or "3.1 / 50 MB" next to the bar use another
-  position.
+  without a total) shows no text. A line shows its whole label (`3 / 8`, `3.1 / 50 MB`) in a slot at
+  least 46 px wide.
+- A completed ring leaves one icon (the success icon replaces the bar icon). A failed progress leaves
+  no indicator: the bar shows the error with its icon.
 - The indicator animates by distance: a small step takes about 300 ms, a jump across the whole
   scale takes `animationDuration` (default 800 ms). No need to throttle or smooth updates yourself.
 - The text effects (`fade`, `pop`, `roll`, `flip`) never cut a change short and start one at most
@@ -68,6 +75,10 @@ final user = await FluentBar.future<User>(
   error: (e) => 'Could not save',
 );
 ```
+
+Other parameters: `title`, `id`, `type` (the loading look), `successType`, `errorType`, `options`
+(`FluentBarOptions<void>`), `overlayState`. Without `success` or `error` the text stays and only the
+type changes. It returns the same future.
 
 It returns the same future: the result and the exception still reach the caller.
 
@@ -104,7 +115,9 @@ hand-written `withAction('Cancel', closeOnAction: false, …)`; it handles the r
 
 ### Failure with Retry
 
-`failProgress({message, title, type, retryLabel, onRetry, isPersistent})`. With `retryLabel` the
+`failProgress({message, title, type, retryLabel, onRetry, isPersistent})`. `isPersistent: false`
+lets the bar leave by its timer, also a persistent one. The last call wins: `completeProgress` after
+`failProgress` takes `FluentBarType.success` unless you pass a type. With `retryLabel` the
 bar gets a Retry button in place of its action and is held on screen until the user answers
 (`retryLabel` and `onRetry` go together: with only one of them the bar fails without a Retry
 button and an `invalidCall` warning is reported; `isPersistent`

@@ -263,7 +263,7 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(errors, isNotEmpty);
-        expect(errors.map((FluentBarException e) => e.type).toSet(), <FluentBarErrorType>{FluentBarErrorType.fluentBarTheme});
+        expect(errors.map((FluentBarException e) => e.type).toSet(), <FluentBarErrorType>{FluentBarErrorType.fluentBarTheme, FluentBarErrorType.darkMode});
       });
     }
   });

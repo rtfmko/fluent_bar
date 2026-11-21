@@ -51,12 +51,10 @@ void main() {
         expect(maxState.isCompleted, isTrue);
       });
 
-      test('should throw AssertionError when percentage is negative', () {
-        expect(() => FluentBarProgressValue(-0.01), throwsA(isA<AssertionError>()));
-      });
-
-      test('should throw AssertionError when percentage is greater than 1.0', () {
-        expect(() => FluentBarProgressValue(1.01), throwsA(isA<AssertionError>()));
+      test('a value out of range is created and its progress stays in range', () {
+        expect(const FluentBarProgressValue(-0.01).progress, 0.0);
+        expect(const FluentBarProgressValue(1.01).progress, 1.0);
+        expect(const FluentBarProgressValue(double.nan).progress, 0.0);
       });
     });
 
@@ -75,20 +73,12 @@ void main() {
         expect(endState.isCompleted, isTrue);
       });
 
-      test('should throw AssertionError when current is negative', () {
-        expect(() => FluentBarProgressFraction(-1, 5), throwsA(isA<AssertionError>()));
-      });
-
-      test('should throw AssertionError when total is 0', () {
-        expect(() => FluentBarProgressFraction(0, 0), throwsA(isA<AssertionError>()));
-      });
-
-      test('should throw AssertionError when total is negative', () {
-        expect(() => FluentBarProgressFraction(0, -5), throwsA(isA<AssertionError>()));
-      });
-
-      test('should throw AssertionError when current is greater than total', () {
-        expect(() => FluentBarProgressFraction(6, 5), throwsA(isA<AssertionError>()));
+      test('a fraction out of range is created and its progress stays in range', () {
+        expect(const FluentBarProgressFraction(-1, 5).progress, 0.0);
+        expect(const FluentBarProgressFraction(0, 0).progress, 0.0);
+        expect(const FluentBarProgressFraction(0, 0).isCompleted, isFalse);
+        expect(const FluentBarProgressFraction(0, -5).progress, 0.0);
+        expect(const FluentBarProgressFraction(6, 5).progress, 1.0);
       });
     });
 

@@ -25,7 +25,7 @@ Each section below ends with two pointers:
 - **API** - the reference page with every parameter
   ([all classes](https://pub.dev/documentation/fluent_bar/latest/)).
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/hero.gif" width="300" alt="Five bars queue at the top while an upload shows progress at the bottom"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/hero.gif" width="300" alt="Five bars queue at the top while an upload shows progress at the bottom"></p>
 
 **Start here:**
 [Install](#install) ·
@@ -37,20 +37,20 @@ Each section below ends with two pointers:
 [Progress](#progress)
 
 **Going further:**
-[Regions and the queue](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/queue.md#regions-and-the-queue) ·
-[Duplicates](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/queue.md#duplicates) ·
-[Overriding settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/settings.md#overriding-settings) ·
-[Themes](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/themes.md#themes) ·
-[Types](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/types.md#types) ·
-[Builders](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/builders.md#builders-replace-any-part) ·
-[Global config](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/settings.md#global-config) ·
-[Accessibility](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/accessibility.md#accessibility) ·
-[Lifecycle](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/behavior.md#lifecycle) ·
-[Analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/analytics.md#analytics-and-metrics) ·
-[Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/errors.md#errors) ·
-[Good to know](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/behavior.md#good-to-know) ·
-[Troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/troubleshooting.md#troubleshooting) ·
-[Reference](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/reference.md#reference) ·
+[Regions and the queue](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/queue.md#regions-and-the-queue) ·
+[Duplicates](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/queue.md#duplicates) ·
+[Overriding settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/settings.md#overriding-settings) ·
+[Themes](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/themes.md#themes) ·
+[Types](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/types.md#types) ·
+[Builders](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/builders.md#builders-replace-any-part) ·
+[Global config](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/settings.md#global-config) ·
+[Accessibility](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/accessibility.md#accessibility) ·
+[Lifecycle](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/behavior.md#lifecycle) ·
+[Analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/analytics.md#analytics-and-metrics) ·
+[Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/errors.md#errors) ·
+[Good to know](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/behavior.md#good-to-know) ·
+[Troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/troubleshooting.md#troubleshooting) ·
+[Reference](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/reference.md#reference) ·
 [Other packages](#using-with-other-packages) ·
 [AI assistants](#using-with-ai-assistants) ·
 [Example](#example)
@@ -119,7 +119,7 @@ on-screen keyboard is always taken into account, so bottom bars stay above it.
 
 ## Show a bar
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/show.gif" width="300" alt="A bar with a title, an action and a countdown line"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/show.gif" width="300" alt="A bar with a title, an action and a countdown line"></p>
 
 Three ways, from shortest to most flexible:
 
@@ -148,7 +148,7 @@ FluentBar.show<void>(
 
 ### Presets
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/presets.gif" width="300" alt="A pinned banner at the top and a snack with Undo at the bottom"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/presets.gif" width="300" alt="A pinned banner at the top and a snack with Undo at the bottom"></p>
 
 ```dart
 FluentBar.showSnack('Message archived', action: 'Undo', onAction: (controller, _) => restore());
@@ -166,7 +166,7 @@ The bars apps need most often. Copy, paste, change the text.
 
 ### Saved
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_saved.gif" width="300" alt="A green success bar"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_saved.gif" width="300" alt="A green success bar"></p>
 
 ```dart
 FluentBar.showSuccess('Changes saved');
@@ -174,17 +174,18 @@ FluentBar.showSuccess('Changes saved');
 
 ### A hint that never piles up
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_toast.gif" width="300" alt="A small toast that restarts instead of piling up"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_toast.gif" width="300" alt="A small toast that restarts instead of piling up"></p>
 
 ```dart
-FluentBar.showToast('Copied', id: 'copied');
+FluentBar.toast<void>('Copied', id: 'copied').withDuplicatePolicy(FluentBarDuplicatePolicy.updateAndResetTimer).show();
 ```
 
-With an `id`, repeated taps update the toast on screen instead of queueing ten.
+With an `id`, repeated taps update the toast on screen instead of queueing ten, and every tap
+starts its countdown over, so the toast stays while the user keeps tapping.
 
 ### Undo
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_undo.gif" width="300" alt="A bottom bar with an Undo button"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_undo.gif" width="300" alt="A bottom bar with an Undo button"></p>
 
 ```dart
 FluentBar.showSnack('Conversation deleted', action: 'Undo', onAction: (controller, _) => restore());
@@ -192,7 +193,7 @@ FluentBar.showSnack('Conversation deleted', action: 'Undo', onAction: (controlle
 
 ### Error with Retry
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_retry.gif" width="300" alt="An error bar whose Retry button shows a loader, then the bar closes"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_retry.gif" width="300" alt="An error bar whose Retry button shows a loader, then the bar closes"></p>
 
 ```dart
 FluentBar.error<void>('Could not load the feed')
@@ -209,7 +210,7 @@ handler closes it. Without it a tap closes the bar at once and the handler runs 
 
 ### Loading, then the result
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_loading.gif" width="300" alt="A spinner bar that turns into a success bar"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_loading.gif" width="300" alt="A spinner bar that turns into a success bar"></p>
 
 ```dart
 final loading = FluentBar.showLoading<void>('Signing in…', id: 'sign_in');
@@ -223,7 +224,7 @@ try {
 
 ### Upload with progress
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_upload.gif" width="300" alt="A bar with a progress line and a percent"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_upload.gif" width="300" alt="A bar with a progress line and a percent"></p>
 
 ```dart
 final upload = FluentBar.info<void>('Uploading 12 photos')
@@ -238,7 +239,7 @@ upload?.completeProgress(message: 'All photos uploaded', type: FluentBarType.suc
 
 ### Offline banner
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_offline.gif" width="300" alt="A pinned warning banner replaced by a Back online bar"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_offline.gif" width="300" alt="A pinned warning banner replaced by a Back online bar"></p>
 
 ```dart
 FluentBar.banner<void>('Changes will sync later.', title: 'You are offline', type: FluentBarType.warning, id: 'network').show();
@@ -249,7 +250,7 @@ FluentBar.success<void>('Back online').withId('network').withDuration(const Dura
 
 ### An alert that must be answered
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_alert.gif" width="300" alt="A persistent error bar with a Sign in button"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_alert.gif" width="300" alt="A persistent error bar with a Sign in button"></p>
 
 ```dart
 FluentBar.error<void>('Your session has expired.')
@@ -263,7 +264,7 @@ FluentBar.error<void>('Your session has expired.')
 
 ### Download with Cancel
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_download.gif" width="300" alt="A download bar with a Cancel button that turns into a warning"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_download.gif" width="300" alt="A download bar with a Cancel button that turns into a warning"></p>
 
 ```dart
 final entry = FluentBar.info<void>('Downloading the map')
@@ -293,7 +294,7 @@ download.onProgress = (received, total) => entry?.updateBytes(received, total);
 - **The button goes away with the progress**, whatever the outcome: a finished upload does not
   keep a Cancel button. Any action can do the same: `FluentBarActions(removeWhenProgressEnds: true)`.
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/retry.gif" width="300" alt="A download that fails at 60 percent, shows Retry and finishes on the second try"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/retry.gif" width="300" alt="A download that fails at 60 percent, shows Retry and finishes on the second try"></p>
 
 A failure can offer a second try on the same bar. `failProgress` with `retryLabel` puts a Retry
 button in place of Cancel and keeps the bar until the user answers:
@@ -321,7 +322,9 @@ void download() {
 
 A tap on Retry removes the button and calls `onRetry`. Showing the bar again with the same `id`
 and a progress starts it over in place: the usual type, the indicator and Cancel are back.
-`isPersistent: false` lets the failed bar leave by its timer even with the button. The hold ends
+`isPersistent: false` lets the failed bar leave by its timer even with the button, also when the
+bar was persistent. The last call wins: `completeProgress` after `failProgress` turns the bar into a
+success (type `success` unless you pass one). The hold ends
 with the answer: a tap on Retry, another button, a new progress or duration, or the same `id` shown again. `retryLabel`
 and `onRetry` go together: with only one of them the bar fails as usual without a Retry button, and
 an `invalidCall` warning goes to your error handler.
@@ -330,7 +333,7 @@ an `invalidCall` warning goes to your error handler.
 
 ### Cookie consent
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_consent.gif" width="300" alt="A bottom bar with an Accept button that stays until answered"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_consent.gif" width="300" alt="A bottom bar with an Accept button that stays until answered"></p>
 
 ```dart
 FluentBar.info<void>('We use cookies to keep you signed in.')
@@ -344,7 +347,7 @@ FluentBar.info<void>('We use cookies to keep you signed in.')
 
 ### Achievement
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/recipe_achievement.gif" width="300" alt="A purple bar in the center that pulses"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/recipe_achievement.gif" width="300" alt="A purple bar in the center that pulses"></p>
 
 ```dart
 FluentBar.success<void>('7 days in a row. Keep going!')
@@ -380,12 +383,16 @@ Every setting can be set on one bar or once for the whole app:
 | Vibration | `.withHaptic(FluentBarHapticType.light)` | `enableHaptics` |
 | A longer queue | - | `maxQueueLength` |
 
+`.withDuration(…)` turns `persistent` off, so the order in a chain matters: `.persistent().withDuration(const Duration(seconds: 3))`
+is a timed bar, `.withDuration(const Duration(seconds: 3)).persistent()` stays. `haptic`, `progressCompletedHaptic` and
+`priority` are never taken from the config: they resolve from the bar, then its type, then a fixed default.
+
 > **Demo:** [Quick start → Recipes](https://rtfmko.github.io/fluent_bar/#/start/recipes) (`start/recipes`)<br>
 > **API:** [`FluentBar`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBar-class.html) · [`FluentBarItemBuilder`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarItemBuilder.html)
 
 ## Change a bar that is on screen
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/update.gif" width="300" alt="A bar that changes its text and type while visible"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/update.gif" width="300" alt="A bar that changes its text and type while visible"></p>
 
 ```dart
 final entry = FluentBar.info<void>('Saving…').withId('save').persistent().show();
@@ -403,6 +410,11 @@ FluentBar.find('save')?.update(message: 'Saved');
 FluentBar.close('save');
 ```
 
+Showing a bar again with the same `id` replaces the bar as a whole: its text, behavior, actions and
+look all come from the new one (only a running progress is carried over, see "Progress"). A bar that
+was `persistent()` and is shown again without it is no longer persistent. Use `update` or the entry
+to change single fields.
+
 Changing the type or theme of a visible bar fades to the new look. A bar that is moved to another
 position fades in at its new place; if that region is busy it leaves, waits there and appears again.
 
@@ -418,7 +430,7 @@ Give a bar an `id` and you can reach it from anywhere, without keeping the entry
 | Get a bar that is shown or waiting | `FluentBar.find('save')` - returns its entry or `null` |
 | Check what is on screen / in the queue | `FluentBar.activeItems`, `FluentBar.allQueue` |
 | Close one bar | `FluentBar.close('save')` or `entry.close()` |
-| Close the bar that is on screen | `FluentBar.closeActive()` |
+| Close the bars that are on screen (one per region) | `FluentBar.closeActive()` |
 | Clear the queue and close the visible bars with their animation | `FluentBar.closeAll()` |
 | Get / close the bars of one screen or feature | `FluentBar.findByTag('checkout')` / `FluentBar.closeTag('checkout')`, or `FluentBarOwner` |
 | Drop the waiting bars, keep the visible ones | `FluentBar.clearQueue()` |
@@ -437,14 +449,20 @@ Every call here, and every other call into the library, is safe inside `initStat
 the current frame.
 
 `close` returns `false` when there is no bar with that `id`. A bar closed from code reports the
-dismiss reason `manual`. In widget tests call `FluentBar.dismissAndClear()` in `tearDown`.
+dismiss reason `manual`. `close`, `closeTag`, `closeActive`, `closeAll` and `entry.close` take a
+`reason:` (a `FluentBarDismissReason`, default `manual`) when another one is more accurate; it
+applies to waiting bars as well, which get their `onDismiss` once. `clearQueue` and `dismissAndClear`
+use `manual`. `closeActive` and `closeAll`
+also take `skipAnimation: true` to remove the bars without the exit animation. Every call that shows
+or closes a bar also accepts an `overlayState:`: the overlay to use instead of the one the library
+finds (the scope, then the navigator). Leave it out unless one screen needs its own overlay. In widget tests call `FluentBar.dismissAndClear()` in `tearDown`.
 
 > **Demo:** [Quick start → Closing bars](https://rtfmko.github.io/fluent_bar/#/start/closing) (`start/closing`) · [Queue & duplicates → Clean up](https://rtfmko.github.io/fluent_bar/#/queue/clean-up) (`queue/clean-up`)<br>
 > **API:** [`FluentBar`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBar-class.html) · [`FluentBarEntry`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarEntry-class.html)
 
 ## Progress
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/progress.gif" width="300" alt="A download bar with a progress line and the amount in megabytes"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/progress.gif" width="300" alt="A download bar with a progress line and the amount in megabytes"></p>
 
 ```dart
 final entry = FluentBar.info<void>('Uploading photos')
@@ -469,9 +487,13 @@ final download = FluentBar.info<void>('Downloading the map').withLinearProgress(
 
 download?.updateBytes(3250586, 52428800);   // 3.1 / 50 MB
 download?.updateBytes(3250586, null);       // 3.1 MB and an indeterminate line: the size is unknown
+download?.updateBytes(3250586, 52428800, label: FluentBarBytesLabel.percent); // 6%; also `amount` (default) and `both`
 ```
 
-More in [Using fluent_bar with other packages](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/INTEGRATIONS.md).
+`state.format()` gives the text the default label shows, if you draw your own. The label of a bytes
+state is `amount`, `percent` or `both` (`FluentBarBytesLabel`).
+
+More in [Using fluent_bar with other packages](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/INTEGRATIONS.md).
 
 **Endless or not is decided by the value you pass, not by a setting.** The theme only chooses the
 shape - a line (`withLinearProgress`) or a circle (`withCircularProgress`):
@@ -485,9 +507,12 @@ The latest value wins, so one bar can switch: start endless while the size is un
 into a normal progress when it arrives, or the other way round.
 
 In place of the icon (`position: FluentBarProgressPosition.replaceIcon`, the default of
-`withCircularProgress` and also available to `withLinearProgress`) there is room for a percent
-only, for a ring and for a line alike. A fraction, bytes and a `labelBuilder`
-text show their percent there; bytes without a total show no text.
+`withCircularProgress` and also available to `withLinearProgress`) the ring shows a percent only: a fraction,
+bytes and a `labelBuilder` text show their percent there, and bytes without a total show no text. A
+line shows its whole label (`3 / 8`, `3.1 / 50 MB`) in a slot at least 46 px wide.
+
+A completed ring leaves one icon, the success icon in the place of the bar icon. A failed progress
+leaves no indicator: the bar shows the error with its icon.
 
 For a `Future`, one call does it all and hands the result back to you:
 
@@ -500,6 +525,9 @@ final user = await FluentBar.future<User>(
 );
 ```
 
+`FluentBar.future` also takes `title`, `id`, `type` (the loading look), `successType`, `errorType` and
+`options`. Without `success` or `error` the text stays and only the type changes.
+
 > **Demo:** [Progress & futures → Three ways to update](https://rtfmko.github.io/fluent_bar/#/progress/update) (`progress/update`) · [Progress & futures → Cancel button](https://rtfmko.github.io/fluent_bar/#/progress/cancel-button) (`progress/cancel-button`) · [Progress & futures → Finishing a progress](https://rtfmko.github.io/fluent_bar/#/progress/finish) (`progress/finish`) · [Progress & futures → FluentBar.future](https://rtfmko.github.io/fluent_bar/#/progress/future) (`progress/future`) · [Progress & futures → Downloads in bytes](https://rtfmko.github.io/fluent_bar/#/progress/bytes) (`progress/bytes`) · [Progress & futures → Look of the indicator](https://rtfmko.github.io/fluent_bar/#/progress/look) (`progress/look`)<br>
 > **API:** [`FluentBarProgressState`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarProgressState-class.html) · [`FluentBarProgressTheme`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarProgressTheme-class.html)
 
@@ -509,25 +537,25 @@ Everything above is enough for most apps. The rest is listed below.
 
 ## More in the library
 
-The full documentation is in [`doc/`](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc):
+The full documentation is in [`doc/`](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc):
 
-- [Queue and duplicates](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/queue.md): regions, priorities, the queue strategies, duplicate rules, tags for one screen
-- [Behavior](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/behavior.md): the close button, the lifecycle of a bar, and the things that follow from how bars work
-- [Settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/settings.md): global config, and the order in which every setting is resolved
-- [Themes](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/themes.md): built-in themes, tweaking one, light and dark, custom themes
-- [Types](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/types.md): built-in types, variations, `typeOverrides`, custom types
-- [Builders](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/builders.md): replace the content, position, transition or progress of a bar
-- [Accessibility](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/accessibility.md): screen readers, reduce motion, and progress announcements
-- [Analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/analytics.md): events, metrics, and sending them to an analytics service
-- [Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/errors.md): every error type and severity, when it is reported and what the library does then
-- [Troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/troubleshooting.md): a symptom, why it happens and what to do
-- [Reference](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/reference.md): every public class, method and enum
+- [Queue and duplicates](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/queue.md): regions, priorities, the queue strategies, duplicate rules, tags for one screen
+- [Behavior](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/behavior.md): the close button, the lifecycle of a bar, and the things that follow from how bars work
+- [Settings](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/settings.md): global config, and the order in which every setting is resolved
+- [Themes](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/themes.md): built-in themes, tweaking one, light and dark, custom themes
+- [Types](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/types.md): built-in types, variations, `typeOverrides`, custom types
+- [Builders](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/builders.md): replace the content, position, transition or progress of a bar
+- [Accessibility](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/accessibility.md): screen readers, reduce motion, and progress announcements
+- [Analytics](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/analytics.md): events, metrics, and sending them to an analytics service
+- [Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/errors.md): every error type and severity, when it is reported and what the library does then
+- [Troubleshooting](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/troubleshooting.md): a symptom, why it happens and what to do
+- [Reference](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/reference.md): every public class, method and enum
 
 ## Using with other packages
 
 `fluent_bar` needs no other package of yours (its own dependencies are Flutter, `cupertino_icons`
 and `meta`). Copy-ready examples of using it together with popular
-packages are in **[doc/INTEGRATIONS.md](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/INTEGRATIONS.md)**:
+packages are in **[doc/INTEGRATIONS.md](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/INTEGRATIONS.md)**:
 
 | For | Packages |
 |---|---|
@@ -544,10 +572,10 @@ packages are in **[doc/INTEGRATIONS.md](https://github.com/rtfmko/fluent_bar/blo
 The package ships a reference written for AI coding assistants, so the code they write matches
 the version you have installed.
 
-[`AI_GUIDE.md`](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/AI_GUIDE.md) holds the rules and an
-index; each file in [`doc/ai/`](https://github.com/rtfmko/fluent_bar/tree/v1.0.0/doc/ai) covers one
+[`AI_GUIDE.md`](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/AI_GUIDE.md) holds the rules and an
+index; each file in [`doc/ai/`](https://github.com/rtfmko/fluent_bar/tree/v1.0.1/doc/ai) covers one
 topic, so an assistant reads only what its task needs. Both are inside the package you installed.
-[`ai/AGENTS.md`](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/ai/AGENTS.md) is a short text that
+[`ai/AGENTS.md`](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/ai/AGENTS.md) is a short text that
 tells an assistant where to find them:
 
 | You use | Do this |
@@ -555,11 +583,11 @@ tells an assistant where to find them:
 | Cursor, Codex, Copilot agents, Gemini CLI, Windsurf and other agents that read `AGENTS.md` | Append `ai/AGENTS.md` to the `AGENTS.md` in your project root. For GitHub Copilot it also works in `.github/copilot-instructions.md`, for Gemini CLI in `GEMINI.md`. |
 | Claude Code | The same, then add the line `@AGENTS.md` to the `CLAUDE.md` in your project root. |
 | A chat assistant without access to your project | Attach `AI_GUIDE.md` and the files from `doc/ai/` your question is about. |
-| A tool that fetches docs by URL | Point it at [`llms.txt`](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/llms.txt). |
+| A tool that fetches docs by URL | Point it at [`llms.txt`](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/llms.txt). |
 
 ## Example
 
-The [`example`](https://github.com/rtfmko/fluent_bar/tree/v1.0.0/example) app is the
+The [`example`](https://github.com/rtfmko/fluent_bar/tree/v1.0.1/example) app is the
 [live demo](https://rtfmko.github.io/fluent_bar/): a playground that generates the chain for the
 bar you configure, a queue monitor, and a screen per feature. Run it locally with:
 
@@ -581,4 +609,4 @@ If the package saves you time, you can [buy me a coffee on Ko-fi](https://ko-fi.
 
 ## License
 
-See [LICENSE](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/LICENSE).
+See [LICENSE](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/LICENSE).

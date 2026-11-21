@@ -309,6 +309,10 @@ void main() {
 
     testWidgets('when the task could not be stopped the bar follows the progress again', (WidgetTester tester) async {
       await boot(tester);
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
       final FluentBarEntry<void> entry = FluentBar.info<void>('Uploading').withLinearProgress(value: 0.5).withCancelButton('Cancel', onCancel: () => throw StateError('cannot stop')).show()!;
       await settle(tester);
 
@@ -319,6 +323,7 @@ void main() {
       await settle(tester);
       expect(entry.item.progressState, const FluentBarProgressState.value(0.75));
       expect(find.text('Cancel'), findsOneWidget);
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.actionPressed));
 
       await cleanup(tester);
     });

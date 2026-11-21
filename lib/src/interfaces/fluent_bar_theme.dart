@@ -12,6 +12,24 @@ part '../interfaces/theme_parts/minimal_bar_theme.dart';
 part '../interfaces/theme_parts/modern_dashboard_bar_theme.dart';
 part '../interfaces/theme_parts/windows_bar_theme.dart';
 
+/// The themes whose `isDarkMode` has already failed once. A bar asks for the mode many times while it
+/// builds, and again on every rebuild; one broken theme is one report.
+final Expando<bool> _darkModeReported = Expando<bool>('fluent_bar_dark_mode');
+
+/// Calls [read] (an `isDarkMode` of user code on [owner]); a throw is reported once as `darkMode`,
+/// and the answer of [orElse] is used: the light variant unless the caller has a better one.
+bool _guardedDark(Object owner, bool Function() read, {bool Function()? orElse}) {
+  try {
+    return read();
+  } catch (e, st) {
+    if (_darkModeReported[owner] != true) {
+      _darkModeReported[owner] = true;
+      FluentBarErrorHandler.instance.handle(e, FluentBarErrorType.darkMode, st, null, 'isDarkMode');
+    }
+    return orElse?.call() ?? false;
+  }
+}
+
 /// The countdown line shared by the built-in themes.
 ///
 /// Colors come from the theme (`timeoutBarColor` / `timeoutBarBackgroundColor`), otherwise from the fallbacks.
@@ -155,6 +173,9 @@ abstract class FluentBarTheme {
     }
   }
 
+  /// [isDarkMode] under protection: what the built-in looks ask for. A throw is reported as `darkMode` and the light variant is used.
+  bool _dark(BuildContext context, FluentBarType type, FluentBarThemeMode? themeMode) => _guardedDark(this, () => isDarkMode(context, type, themeMode: themeMode));
+
   /// The size limits of a bar.
   BoxConstraints constraints(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) => const BoxConstraints(maxWidth: 480);
 
@@ -167,7 +188,7 @@ abstract class FluentBarTheme {
       return type.backgroundColor!;
     }
 
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     if (type.kind == FluentBarType.success) {
       return dark ? const Color(0xFF1B5E20) : const Color(0xFF2E7D32);
@@ -193,7 +214,7 @@ abstract class FluentBarTheme {
 
   /// The color of the loader shown on the action button while its handler runs.
   Color actionLoaderColor(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) =>
-      iconColor(context, type, themeMode: themeMode) ?? (isDarkMode(context, type, themeMode: themeMode) ? Colors.white : Colors.black);
+      iconColor(context, type, themeMode: themeMode) ?? (_dark(context, type, themeMode) ? Colors.white : Colors.black);
 
   /// The space inside the action button.
   EdgeInsets? actionInternalPadding(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) => const EdgeInsets.symmetric(horizontal: 8, vertical: 4);
@@ -301,7 +322,7 @@ abstract class FluentBarTheme {
   /// The countdown line. Every value is read from [theme] (not from `this`) so that [copyWith]
   /// overrides work. Return `null` to draw no line at all.
   Widget? buildTimeoutBar(BuildContext context, FluentBarEntry<dynamic> entry, FluentBarTheme theme, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final Color fallback = theme.iconColor(context, type, themeMode: themeMode) ?? (isDarkMode(context, type, themeMode: themeMode) ? Colors.white : Colors.black);
+    final Color fallback = theme.iconColor(context, type, themeMode: themeMode) ?? (_dark(context, type, themeMode) ? Colors.white : Colors.black);
 
     return _buildLinearTimeoutBar(context, entry, theme, type, themeMode: themeMode, fallbackColor: fallback.withValues(alpha: 0.5), fallbackBackgroundColor: fallback.withValues(alpha: 0.12));
   }

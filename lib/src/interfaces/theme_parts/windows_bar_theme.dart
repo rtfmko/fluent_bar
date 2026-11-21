@@ -8,7 +8,7 @@ class _WindowsBarTheme extends FluentBarTheme {
 
   @override
   BoxDecoration boxDecoration(BuildContext context, FluentBarType type, FluentBarTheme theme, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return BoxDecoration(
       color: theme.backgroundColor(context, type, themeMode: themeMode),
@@ -28,24 +28,27 @@ class _WindowsBarTheme extends FluentBarTheme {
   Color backgroundColor(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
     if (type.backgroundColor != null) return type.backgroundColor!;
 
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return dark ? const Color(0xFF202020).withValues(alpha: 0.9) : const Color(0xFFF3F3F3).withValues(alpha: 0.9);
   }
 
   @override
   TextStyle titleStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(color: dark ? Colors.white : Colors.black87, fontWeight: FontWeight.w600, fontSize: 13);
   }
 
   @override
   TextStyle messageStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(color: dark ? Colors.white70 : Colors.black54, fontSize: 12);
   }
 
   @override
-  TextStyle actionStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) => const TextStyle(color: Color(0xFF0067C0), fontWeight: FontWeight.w600, fontSize: 12);
+  TextStyle actionStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
+    final bool dark = _dark(context, type, themeMode);
+    return TextStyle(color: dark ? const Color(0xFF60CDFF) : const Color(0xFF0067C0), fontWeight: FontWeight.w600, fontSize: 12);
+  }
 
   @override
   BoxDecoration? actionDecoration(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) => BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(4));

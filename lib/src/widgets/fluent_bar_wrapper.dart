@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:fluent_bar/src/internal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
+part 'fluent_bar_wrapper_guard.dart';
 
 /// Everything around the content of a bar: position, insets, entrance and exit, gestures, attention effects and semantics.
 class FluentBarWrapper<T> extends StatefulWidget {
@@ -402,7 +405,12 @@ class _FluentBarWrapperState<T> extends State<FluentBarWrapper<T>> with TickerPr
     if (customBuilder != null) {
       final Widget? builtWidget = customBuilder(context, entry);
       if (builtWidget != null) {
-        return builtWidget;
+        return FluentBarUserWidgetGuard(
+          type: FluentBarErrorType.customBuilderAppearance,
+          debugContext: 'content builder widget',
+          fallback: (BuildContext context) => DefaultFluentBarWidget<T>(entry: entry, config: widget.config),
+          child: builtWidget,
+        );
       }
     }
 

@@ -14,7 +14,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   bool isClosedBeforeShow = false;
 
   final _ItemNotifier<T> _itemNotifier;
-  final ValueNotifier<FluentBarLifecycleState> _stateNotifier = FrameSafeValueNotifier<FluentBarLifecycleState>(FluentBarLifecycleState.queued);
+  final ValueNotifier<FluentBarLifecycleState> _stateNotifier = _EndedSafeValueNotifier<FluentBarLifecycleState>(FluentBarLifecycleState.queued);
 
   // Time values are computed from the clock when read; the ticker exists only to notify
   // listeners. While there are none (no timeout bar), it does not run at all.
@@ -25,7 +25,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   late final _LiveNotifier<double> _elapsedProgressNotifier;
   late final ValueNotifier<double?> _taskProgressNotifier;
   late final ValueNotifier<FluentBarProgressState?> _progressStateNotifier;
-  final ValueNotifier<bool> _isActionExecutingNotifier = FrameSafeValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isActionExecutingNotifier = _EndedSafeValueNotifier<bool>(false);
 
   @override
   ValueListenable<FluentBarItem<T>> get itemNotifier => _itemNotifier;
@@ -71,7 +71,9 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   Completer<void> _dismissCompleter = Completer<void>();
   bool _isDismissRequested = false;
 
-  DateTime? _lastActionTime;
+  /// Runs from the last accepted tap on an action; `null` when there was none or the button changed.
+  /// The library clock ([stopwatchFactory]) keeps it monotonic and in step with the countdown.
+  Stopwatch? _sinceLastAction;
 
   // The budget and the time spent live only in [_lifetime]. The timers below are derived:
   // after ANY change [_sync] decides again whether the clock runs and re-arms them, so the
@@ -188,13 +190,13 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
     _itemBudget = initialItem.resolveEffectiveDuration(_config);
     _lifetime = _Lifetime(stopwatchFactory(), _itemBudget);
 
-    _totalDurationNotifier = FrameSafeValueNotifier<Duration?>(_lifetime.total);
+    _totalDurationNotifier = _EndedSafeValueNotifier<Duration?>(_lifetime.total);
     _elapsedDurationNotifier = _LiveNotifier<Duration>(() => _hasExpired ? (_lifetime.total ?? Duration.zero) : _lifetime.elapsed, _updateTicker);
     _remainingDurationNotifier = _LiveNotifier<Duration>(() => _hasExpired ? Duration.zero : _lifetime.remaining, _updateTicker);
     _remainingProgressNotifier = _LiveNotifier<double>(() => _hasExpired ? 0.0 : _lifetime.remainingRatio, _updateTicker);
     _elapsedProgressNotifier = _LiveNotifier<double>(() => _hasExpired ? 1.0 : _lifetime.elapsedRatio, _updateTicker);
-    _taskProgressNotifier = FrameSafeValueNotifier<double?>(initialItem.progressState?.progress);
-    _progressStateNotifier = FrameSafeValueNotifier<FluentBarProgressState?>(initialItem.progressState);
+    _taskProgressNotifier = _EndedSafeValueNotifier<double?>(initialItem.progressState?.progress);
+    _progressStateNotifier = _EndedSafeValueNotifier<FluentBarProgressState?>(initialItem.progressState);
   }
 
   /// The only place where the state changes. The library reacts at once; listeners of
@@ -249,7 +251,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
     final FluentBarActions<T>? before = _itemNotifier.value.actions;
     final FluentBarActions<T>? after = next.actions;
     final bool isAnotherButton = before?.label != after?.label || _widgetIdentity(before?.child) != _widgetIdentity(after?.child) || (before?.builder == null) != (after?.builder == null);
-    if (isAnotherButton && !_isActionRunning) _lastActionTime = null;
+    if (isAnotherButton && !_isActionRunning) _sinceLastAction = null;
 
     final FluentBarPosition? keep = _owner.relocate(this, next);
     _itemNotifier.value = keep == null ? next : next.copyWith(behavior: next.behavior.copyWith(position: keep));
@@ -262,6 +264,10 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
 
   void _triggerEffect(FluentBarEffect type, double intensity, Duration duration, bool repeat) {
     if (_isDisposed) return;
+    if (!intensity.isFinite) {
+      _reportInvalidCall(ArgumentError.value(intensity, 'intensity', '${type.name} takes a finite intensity or scale; the effect was not played'), type.name);
+      return;
+    }
 
     final FluentBarEffectEvent event = FluentBarEffectEvent(
       type: type,
@@ -442,15 +448,21 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   /// A negative amount would turn adding into taking away and back: it is reported and ignored.
   static bool _isNegative(Duration amount, String call) {
     if (!amount.isNegative) return false;
-    FluentBarErrorHandler.instance.handle(
-      ArgumentError.value(amount, 'duration', '$call takes a positive duration; nothing was changed'),
-      FluentBarErrorType.invalidCall,
-      StackTrace.current,
-      FluentBarErrorSeverity.warning,
-      call,
-    );
+    _reportInvalidCall(ArgumentError.value(amount, 'duration', '$call takes a positive duration; nothing was changed'), call);
     return true;
   }
+
+  /// A call that cannot be applied as it is: it is ignored, and the misuse goes to the handlers as a warning.
+  static void _reportInvalidCall(ArgumentError error, String call) =>
+      FluentBarErrorHandler.instance.handle(error, FluentBarErrorType.invalidCall, StackTrace.current, FluentBarErrorSeverity.warning, call);
+
+  /// A value from 0 to 1, or a count from 0 to a positive total. Bytes and indeterminate progress
+  /// have no invalid values (a total of zero or less means "unknown size").
+  static bool _isValidProgress(FluentBarProgressState state) => switch (state) {
+    FluentBarProgressValue(:final double value) => value >= 0.0 && value <= 1.0,
+    FluentBarProgressFraction(:final int current, :final int total) => total > 0 && current >= 0 && current <= total,
+    FluentBarProgressBytes() || FluentBarProgressIndeterminate() => true,
+  };
 
   @override
   void updateContent({String? title, String? message, T? payload, FluentBarType? type, bool clearTitle = false}) {
@@ -600,6 +612,13 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   @override
   void updateProgress(FluentBarProgressState newProgressState, {String? completedMessage, String? completedTitle, FluentBarType? completedType}) {
     if (_isDisposed) return;
+    if (!_isValidProgress(newProgressState)) {
+      _reportInvalidCall(
+        ArgumentError.value(newProgressState, 'progress', 'a value goes from 0.0 to 1.0, a fraction needs total > 0 and 0 <= current <= total; the progress was not changed'),
+        'updateProgress',
+      );
+      return;
+    }
     // A stopped task may still send what was on its way; a finished one is let through.
     if (_isProgressCanceled || (_isCancellingProgress && !newProgressState.isCompleted)) return;
     _stopAwaitingAnswer();
@@ -671,13 +690,11 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
 
     if (_isActionExecutingNotifier.value) return;
 
-    final DateTime now = DateTime.now();
-    if (_lastActionTime != null && now.difference(_lastActionTime!) < throttleDuration) {
-      _lastActionTime = now;
-      return;
-    }
+    // A fixed window from the last accepted tap: a blocked tap does not move it.
+    final Stopwatch? since = _sinceLastAction;
+    if (since != null && since.elapsed < throttleDuration) return;
 
-    _lastActionTime = now;
+    _sinceLastAction = stopwatchFactory()..start();
     _isActionRunning = true;
     _syncBusy();
 
@@ -707,7 +724,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
     if (_isDisposed) return;
     if (manager == null) {
       isClosedBeforeShow = true;
-      if (!FluentBarManager.instance.discardQueuedByController(this)) {
+      if (!FluentBarManager.instance.discardQueuedByController(this, reason: reason)) {
         _setState(FluentBarLifecycleState.dismissed);
         dispose();
       }
@@ -772,9 +789,11 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
 
     // A fraction completes as "total / total"; everything else completes as 100%.
     final FluentBarProgressState? current = _progressStateNotifier.value;
-    final FluentBarProgressState completed = current is FluentBarProgressFraction ? FluentBarProgressFraction(current.total, current.total) : const FluentBarProgressValue(1.0);
+    final FluentBarProgressState completed = current is FluentBarProgressFraction && current.total > 0 ? FluentBarProgressFraction(current.total, current.total) : const FluentBarProgressValue(1.0);
 
-    updateProgress(completed, completedMessage: message, completedTitle: title, completedType: type);
+    // The last call wins: a success after a failure does not keep the error type.
+    final FluentBarType? completedType = type ?? (_progressOutcome == FluentBarProgressOutcome.failed ? FluentBarType.success : null);
+    updateProgress(completed, completedMessage: message, completedTitle: title, completedType: completedType);
   }
 
   @override
@@ -815,7 +834,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
 
     _retryAction = retry;
     _awaitsAnswer = isPersistent ?? retry != null;
-    _endProgress(message: message, title: title, type: type ?? FluentBarType.error, actions: retry);
+    _endProgress(message: message, title: title, type: type ?? FluentBarType.error, actions: retry, isPersistent: isPersistent == false ? false : null);
   }
 
   void _retry(FutureOr<void> Function()? onRetry) {
@@ -825,7 +844,7 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
       unawaited(FluentBarErrorHandler.instance.executeSafeAsync(overrideCall: () async => onRetry(), type: FluentBarErrorType.actionPressed));
     }
     // A button that the callback has put in place appeared under the finger that tapped Retry.
-    _lastActionTime = DateTime.now();
+    _sinceLastAction = stopwatchFactory()..start();
   }
 
   /// The Retry button put by [failProgress], to take it away when the progress goes on without a tap.
@@ -848,9 +867,21 @@ class FluentBarControllerImpl<T> implements FluentBarInternalController<T> {
   }
 
   /// Removes the indicator and starts the usual countdown; texts and type change only if given.
-  void _endProgress({String? message, String? title, FluentBarType? type, FluentBarActions<T>? actions}) {
+  ///
+  /// [isPersistent] `false` lets a bar that was persistent leave by its timer.
+  void _endProgress({String? message, String? title, FluentBarType? type, FluentBarActions<T>? actions, bool? isPersistent}) {
     _isCancellingProgress = false;
-    _setItem(_itemNotifier.value.copyWith(message: message, title: title, type: type, clearProgressState: true, actions: actions, clearActions: actions == null && _removesActionWithProgress));
+    _setItem(
+      _itemNotifier.value.copyWith(
+        message: message,
+        title: title,
+        type: type,
+        isPersistent: isPersistent,
+        clearProgressState: true,
+        actions: actions,
+        clearActions: actions == null && _removesActionWithProgress,
+      ),
+    );
     _taskProgressNotifier.value = null;
     _progressStateNotifier.value = null;
 

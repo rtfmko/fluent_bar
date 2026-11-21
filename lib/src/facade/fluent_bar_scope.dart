@@ -57,8 +57,10 @@ class _FluentBarScopeState extends State<FluentBarScope> {
   void didUpdateWidget(covariant FluentBarScope oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // A parent that rebuilds creates the config again: an equal one is not a change.
     final FluentBarConfig? newConfig = widget.config;
-    if (newConfig != null && !identical(newConfig, oldWidget.config)) {
+    final FluentBarConfig? oldConfig = oldWidget.config;
+    if (newConfig != null && (oldConfig == null || newConfig != oldConfig || !newConfig.hasSameFunctionsAs(oldConfig))) {
       _applyConfig(newConfig);
     }
 
@@ -85,8 +87,9 @@ class _FluentBarScopeState extends State<FluentBarScope> {
     WidgetsBinding.instance.ensureVisualUpdate();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // The config may have changed again during the frame: apply only the current one.
-      if (mounted && identical(widget.config, config)) {
-        FluentBarManager.instance.updateConfig(config);
+      final FluentBarConfig? current = widget.config;
+      if (mounted && current != null && (identical(current, config) || (current == config && current.hasSameFunctionsAs(config)))) {
+        FluentBarManager.instance.updateConfig(current);
       }
     });
   }

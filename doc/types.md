@@ -1,6 +1,6 @@
 # Types
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Types
 
@@ -48,6 +48,10 @@ class AchievementType extends FluentBarType {
 FluentBar.custom<void>(const AchievementType(), 'Ten days in a row!').show();
 ```
 
+- `haptic`, `progressCompletedHaptic` (default `none`) and `priority` (default `normal`) are not
+  nullable and have no config level: they resolve bar, then type, then that default.
+- Besides the getters of the settings table, a type can override `timeoutBarColor` (the countdown
+  line), `customHaptic` and `customProgressCompletedHaptic` (a callback instead of a built-in vibration).
 - `kind` names the built-in type whose colors and icon your type takes; by default itself.
 - A type used as a key of `typeOverrides` is compared by identity: keep a `copyWith` type in a
   variable.
@@ -56,5 +60,5 @@ FluentBar.custom<void>(const AchievementType(), 'Ten days in a row!').show();
 - Every getter a type can override, and where each one sits in the lookup order, is in
   [Overriding settings](settings.md#overriding-settings).
 
-> **Demo:** [Themes & types → Type of the bar](https://rtfmko.github.io/fluent_bar/#/themes/type) (`themes/type`) · [Themes & types → Type overrides](https://rtfmko.github.io/fluent_bar/#/themes/type-overrides) (`themes/type-overrides`)<br>
+> **Demo:** [Themes & types → Type of the bar](https://rtfmko.github.io/fluent_bar/#/themes/type) (`themes/type`) · [Themes & types → Override a built-in type everywhere](https://rtfmko.github.io/fluent_bar/#/themes/type-overrides) (`themes/type-overrides`)<br>
 > **API:** [`FluentBarType`](https://pub.dev/documentation/fluent_bar/latest/fluent_bar/FluentBarType-class.html)

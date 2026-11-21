@@ -1,4 +1,5 @@
 export 'combined_value_listenable.dart';
+export 'fluent_bar_clamped_height.dart';
 export 'fluent_bar_color_fade.dart';
 export 'fluent_bar_effect_event.dart';
 export 'fluent_bar_internal_controller.dart';

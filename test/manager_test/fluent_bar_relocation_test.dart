@@ -267,7 +267,7 @@ void main() {
     expect(queued.internalController.isDisposed, isTrue);
     expect(FluentBar.mainActiveItem, same(active));
     expect(find.text('Active'), findsOneWidget);
-    expect(dismissed, isEmpty);
+    expect(dismissed, <String>['Queued:manual']);
 
     await cleanup(tester);
   });

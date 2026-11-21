@@ -1,6 +1,6 @@
 # Migrations
 
-Version: 1.0.0. Read this when code written for fluent_bar does not compile after an update, or
+Version: 1.0.1. Read this when code written for fluent_bar does not compile after an update, or
 when the analyzer reports a deprecated member of fluent_bar.
 
 Every renamed or removed public member is listed here. Its old name stays in the code with

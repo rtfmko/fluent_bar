@@ -4,7 +4,7 @@ This file is written for an AI coding assistant. Read it in full, then open only
 `doc/ai/` that your task needs. Everything here matches the public API of the package; when in
 doubt, read the source in `lib/src/` rather than guessing.
 
-- Version: 1.0.0. The installed version is in the `pubspec.lock` of the app (entry `fluent_bar:`,
+- Version: 1.0.1. The installed version is in the `pubspec.lock` of the app (entry `fluent_bar:`,
   field `version`). If the versions differ, make sure you are reading `AI_GUIDE.md` from the root of
   the installed package (the path from `.dart_tool/package_config.json`) and use that one; if you
   already are, `pubspec.lock` changed without `flutter pub get`, so tell the user to run it. Do not
@@ -44,7 +44,9 @@ The paths are relative to this file. Each file starts with its version and when 
    services, `main()` before `runApp`.
 3. **Prefer the shortest form that does the job**: one-liner → chain → full `show(...)`.
 4. **To change a bar that is already shown, update it; do not show a second one.** Use the returned
-   `FluentBarEntry`, or `FluentBar.find(id)`, or show again with the same `id`.
+   `FluentBarEntry`, or `FluentBar.find(id)`, or show again with the same `id`. Showing again
+   replaces the whole item (only a running progress is carried over), so repeat everything the bar
+   needs, `persistent()` included.
 5. **Give an `id` to any bar you will update, close or de-duplicate later.**
 6. **Use the same type argument for every bar that shares an `id`.** `FluentBar.info<void>(…)` and
    `FluentBar.info<Order>(…)` with one id are different bars (the library warns about it).
@@ -53,8 +55,8 @@ The paths are relative to this file. Each file starts with its version and when 
    on the bar only when it differs from the type and the config.
 8. **Never wrap library calls in try/catch to "protect" the app.** User callbacks, builders, themes
    and types are already guarded: a throw is reported to error handlers and a fallback is used.
-9. **Progress values are fractions `0.0 … 1.0`**, not percents. `FluentBarProgressState.value(1.2)`
-   and `.fraction(5, 3)` fail an assert; clamp first. (`withLinearProgress(value:)` clamps for you.)
+9. **Progress values are fractions `0.0 … 1.0`**, not percents. A bad value (`value(1.2)`,
+   `.fraction(5, 3)`) is ignored and reported as an `invalidCall` warning; clamp first. (`withLinearProgress(value:)` clamps for you.)
 10. **A bar with unfinished progress never times out.** Finish it with `completeProgress`,
     `failProgress` or `cancelProgress`; then the normal countdown starts.
 11. **`copyWith(appearance: …)` / `copyWith(behavior: …)` and `updateAppearance` / `updateBehavior`

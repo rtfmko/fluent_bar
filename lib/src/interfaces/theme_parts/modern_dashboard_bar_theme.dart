@@ -11,7 +11,7 @@ class _ModernDashboardBarTheme extends FluentBarTheme {
 
   @override
   BoxDecoration boxDecoration(BuildContext context, FluentBarType type, FluentBarTheme theme, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return BoxDecoration(
       color: theme.backgroundColor(context, type, themeMode: themeMode),
       borderRadius: theme.borderRadius(context, type, themeMode: themeMode),
@@ -30,31 +30,31 @@ class _ModernDashboardBarTheme extends FluentBarTheme {
   Color backgroundColor(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
     if (type.backgroundColor != null) return type.backgroundColor!;
 
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return dark ? const Color(0xFF1E1E2E).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95);
   }
 
   @override
   TextStyle titleStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: dark ? Colors.white : const Color(0xFF111827));
   }
 
   @override
   TextStyle messageStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: dark ? Colors.white.withValues(alpha: 0.8) : const Color(0xFF4B5563));
   }
 
   @override
   TextStyle actionStyle(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: dark ? const Color(0xFF818CF8) : const Color(0xFF4F46E5));
   }
 
   @override
   BoxDecoration? actionDecoration(BuildContext context, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
     return BoxDecoration(color: dark ? const Color(0xFF818CF8).withValues(alpha: 0.15) : const Color(0xFF4F46E5).withValues(alpha: 0.08), borderRadius: BorderRadius.circular(6));
   }
 
@@ -63,7 +63,7 @@ class _ModernDashboardBarTheme extends FluentBarTheme {
 
   @override
   Widget? buildTimeoutBar(BuildContext context, FluentBarEntry<dynamic> entry, FluentBarTheme theme, FluentBarType type, {FluentBarThemeMode? themeMode}) {
-    final bool dark = isDarkMode(context, type, themeMode: themeMode);
+    final bool dark = _dark(context, type, themeMode);
 
     return _buildLinearTimeoutBar(
       context,

@@ -1,10 +1,10 @@
 # Analytics
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Analytics and metrics
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/monitor.png" width="300" alt="The lifecycle, metrics and raw analytics of one bar"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/monitor.png" width="300" alt="The lifecycle, metrics and raw analytics of one bar"></p>
 
 One listener receives everything that happens to every bar:
 
@@ -41,7 +41,13 @@ FluentBar.addAnalyticsListener((payload) {
 | Which bar was it? | `id`, `typeName`, `preset`, `tags`, `position` |
 
 Bars that never reached the screen report metrics too - dropped by a full queue, or closed while
-waiting - with `wasVisible: false` and the time they spent in the queue.
+waiting - with `wasVisible: false` and the time they spent in the queue. A bar that waited and is
+removed (by a close call, `clearQueue`, `dismissAndClear` or its `FluentBarOwner`) gets one `dismissed`
+event and its `onDismiss`, like a bar that was on screen. A waiting bar pushed out of a full queue
+(by a forced bar, a lower `maxQueueLength` or a queue strategy) gets `queueOverflow` and then
+`dismissed` with the reason `dropped`, and its `onDismiss`. A bar that does not fit when it is shown
+gets only `queueOverflow`; `show()` returns `null` and there is no `onDismiss`. These events and
+callbacks come after the call that ended the bar has finished with the queues.
 
 `payload.toFlatMap()` and `metrics.toFlatMap()` return strings and numbers only (flags as `1` / `0`,
 one `interaction_...` key per interaction), which is what Firebase Analytics and similar services
@@ -52,6 +58,12 @@ FluentBar.addAnalyticsListener((payload) {
   analytics.logEvent(name: 'bar_${payload.event.name}', parameters: payload.toFlatMap());
 });
 ```
+
+`FluentBar.removeAnalyticsListener(listener)` removes a listener again. The interactions are
+`FluentBarInteraction.tap`, `action`, `hold`, `swipe`, `close` and `accessibility`;
+`metrics.countOf(FluentBarInteraction.tap)` counts one of them, and each becomes an
+`interaction_<name>` key in the flat map. For an event with metrics the `position` key is the place
+where the bar closed, not the place that was requested.
 
 **Events come in groups**, and an event knows its own:
 
@@ -98,4 +110,4 @@ For one bar use its own callbacks instead: `.onShow(…)`, `.onTap(…)`, `.onDi
 ## Errors
 
 What happens when your code throws, every error type and how to send the reports to a crash
-reporter: [Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/errors.md).
+reporter: [Errors](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/errors.md).

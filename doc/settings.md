@@ -1,6 +1,6 @@
 # Settings
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Overriding settings
 
@@ -33,7 +33,7 @@ FluentBar.custom<void>(const SaleType(), '20% off')
 
 | To change… | Do this |
 |---|---|
-| A default for every bar | `FluentBar.patchConfig((c) => c.copyWith(…))`. Applies at once, also to bars on screen |
+| A default for every bar | `FluentBar.patchConfig((c) => c.copyWith(…))`. Applies at once, also to bars on screen, except the lifetime of a countdown that is already running |
 | A built-in type everywhere, without touching the calls | `typeOverrides: {FluentBarType.error: FluentBarType.error.copyWith(duration: …)}` in the config |
 | A group of bars | your own `FluentBarType`, or `FluentBarType.info.copyWith(…)` kept in a variable |
 | One bar | the `.with…()` chain, or `FluentBarOptions(behavior: …, appearance: …)` |
@@ -94,6 +94,10 @@ Good to know:
 
 - The built-in `error` type sets its own values (6 s, high priority, no swipe), so config defaults
   do not reach them. Change them with `typeOverrides` or on the bar.
+- A type has a few getters that are not in the table: `timeoutBarColor` (the countdown line),
+  `customHaptic` and `customProgressCompletedHaptic` (a callback instead of a built-in vibration).
+  `haptic`, `progressCompletedHaptic` and `priority` have no config level: bar, then type, then
+  their default (`none`, `none`, `normal`).
 - An explicit `false` counts as set: `.swipeable(false)` on a bar beats a type that allows swiping.
 - One rule for every `copyWith` and `update…`: an omitted argument keeps the value. To remove one
   use the `clear…` flag (`clearTitle`, `clearActions`, …) or `entry.removeAction()` /
@@ -107,7 +111,7 @@ Good to know:
 
 ## Global config
 
-Every default lives in one place and can be changed at any time, also for bars already on screen:
+Every default lives in one place and can be changed at any time, also for bars already on screen (a countdown that is already running keeps its length, so `defaultDuration` reaches the bars shown afterwards):
 
 ```dart
 FluentBar.patchConfig((config) => config.copyWith(
@@ -118,7 +122,7 @@ FluentBar.patchConfig((config) => config.copyWith(
 ));
 ```
 
-`FluentBar.updateConfig(config)` replaces the whole config, `patchConfig` changes a part of it,
+`FluentBar.updateConfig(config)` replaces the whole config (a config equal to the current one, functions included, changes nothing; `FluentBarScope` re-applies its config only when it differs from the previous one), `patchConfig` changes a part of it,
 `FluentBar.currentConfig` reads it and `FluentBar.configNotifier` lets a widget follow it.
 
 Motion: with `respectSystemReduceMotion` (on by default) bars fade instead of sliding and skip

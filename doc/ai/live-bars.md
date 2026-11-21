@@ -1,6 +1,6 @@
 # Changing a bar after it is shown
 
-Version: 1.0.0. Read this to change, find or close a bar that is already on screen.
+Version: 1.0.1. Read this to change, find or close a bar that is already on screen.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Changing a bar after it is shown
@@ -16,10 +16,11 @@ entry?.subtractDuration(const Duration(seconds: 2));                            
 entry?.update(clearTitle: true);                                                // remove the title
 entry?.removeAction();                                                          // remove the button
 entry?.makePersistent();                                                        // no countdown any more
+entry?.controller.updateBehavior(isPersistent: true);                           // or set the flag with a new behavior
 entry?.patchBehavior((b) => b.copyWith(position: FluentBarPosition.bottom));    // change one setting
 entry?.patchAppearance((a) => a.copyWith(backgroundColor: Colors.teal));        // change one setting
 entry?.pause();  entry?.resume();
-entry?.shake();  entry?.bounce();  entry?.pulse();  entry?.heartbeat(repeat: true);
+entry?.shake();  entry?.bounce();  entry?.pulse();  entry?.heartbeat(repeat: true);   // NaN / infinity: ignored, `invalidCall` warning
 entry?.close();
 
 // Without the entry at hand:
@@ -55,7 +56,7 @@ works through `FluentBar.find(id)` too.
 | get a shown or queued bar by id | `FluentBar.find(id)` → `FluentBarEntry<dynamic>?` |
 | list bars | `FluentBar.activeItems`, `allQueue`, `mainQueue`, `bottomQueue` |
 | close one bar | `FluentBar.close(id)` (returns `false` if there is none) or `entry.close()` |
-| close the bar on screen | `FluentBar.closeActive()` |
+| close the bars on screen (one per region) | `FluentBar.closeActive()` |
 | clear the queue and close the visible bars, animated | `FluentBar.closeAll()` |
 | find / close the bars of one screen or feature | `FluentBar.findByTag(tag)`, `FluentBar.closeTag(tag)` (returns the count; removes queued ones too) |
 | drop waiting bars only | `FluentBar.clearQueue()` |
@@ -66,10 +67,17 @@ Any call into the library is safe from `initState`, `build` and `dispose` (for e
 listeners are notified right after the frame. Do not wrap such calls in
 `addPostFrameCallback` or `Future.microtask`.
 
-Closing from code gives the dismiss reason `manual`. A bar with no `id` can only be reached through
+Closing from code gives the dismiss reason `manual`. `close`, `closeTag`, `closeActive`, `closeAll`,
+`entry.close` and `controller.close` take `reason:` (a `FluentBarDismissReason`, default `manual`) when another is more
+accurate; it applies to waiting bars too, which get `dismissed` and `onDismiss` once with that
+reason (`clearQueue` and `dismissAndClear` use `manual`); `closeActive` and `closeAll` also take `skipAnimation: true` (no exit animation) and, like
+the calls that show a bar, `overlayState:` (the overlay to use instead of the one the library
+finds). Re-showing a bar with the same `id` replaces the item as a whole (only a running progress is
+carried over): a `persistent()` bar shown again without `persistent()` is no longer persistent. A bar with no `id` can only be reached through
 the entry returned by `show()`.
 
 Listen instead of polling: `FluentBarController` exposes `ValueListenable`s: `itemNotifier`,
 `stateNotifier`, `remainingDurationNotifier`, `elapsedDurationNotifier`, `totalDurationNotifier`,
 `remainingProgressNotifier` (1 → 0), `elapsedProgressNotifier` (0 → 1), `progressStateNotifier`,
-`taskProgressNotifier`, `isActionExecutingNotifier`.
+`taskProgressNotifier`, `isActionExecutingNotifier`. Adding a listener to the notifiers of a bar that
+has ended is ignored; it does not throw.

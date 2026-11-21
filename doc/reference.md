@@ -1,6 +1,6 @@
 # Reference
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## Reference
 
@@ -12,15 +12,31 @@ has the signatures and an example for each member.
 
 | Group | Members |
 |---|---|
-| Set up | `initialize`, `updateConfig`, `patchConfig`, `currentConfig`, `configNotifier` |
+| Set up | `initialize` (takes `config` and an optional `navigatorKey`), `updateConfig`, `patchConfig`, `currentConfig`, `configNotifier` |
 | Show now (returns the entry) | `show`, `showInfo`, `showSuccess`, `showWarning`, `showError`, `showCustom`, `showSnack`, `showToast`, `showBanner`, `showLoading`, `showItem` |
 | Make a draft for a chain | `info`, `success`, `warning`, `error`, `custom`, `snack`, `toast`, `banner`, `loading` |
 | A Future | `future` |
 | Find | `find`, `findByTag`, `activeItems`, `mainActiveItem`, `bottomActiveItem`, `lastActiveItem` |
-| Close | `close`, `closeTag`, `closeActive`, `closeAll`, `clearQueue`, `dismissAndClear` |
+| Close | `close`, `closeTag`, `closeActive` (the bars on screen, one per region), `closeAll`, `clearQueue`, `dismissAndClear` |
 | The queue | `allQueue`, `mainQueue`, `bottomQueue`, `allQueueLength`, `mainQueueLength`, `bottomQueueLength`, `allQueueLengthNotifier`, `mainQueueLengthNotifier`, `bottomQueueLengthNotifier`, `forceItem`, `forceItemFromQueue`, `updateItemPriority` |
 | Insets measured by the inset widgets | `measuredTopInset`, `measuredBottomInset` |
 | Listeners | `addAnalyticsListener`, `removeAnalyticsListener`, `addErrorHandler`, `removeErrorHandler` |
+
+`show`, `showItem`, `showInfo` and the other `show…` calls, `future`, `forceItem`, `forceItemFromQueue`,
+`closeActive` and `closeAll` (and `show()` / `force()` on a draft) take an `overlayState:`: the overlay
+to use instead of the one the library finds (the scope, then the navigator). `close`, `closeTag`,
+`closeActive` and `closeAll` (and `entry.close`) take a `reason:` (a `FluentBarDismissReason`,
+default `manual`; it applies to waiting bars too, which get `dismissed` and `onDismiss` once);
+`clearQueue` and `dismissAndClear` use `manual`. `closeActive` and `closeAll` also take `skipAnimation: true` to remove the bars
+without the exit animation. `FluentBar.show` and the `show…` calls also take `isPersistent` and
+`options` (a `FluentBarOptions<T>` with `meta`, `tags`, `behavior`, `actions`, `appearance`,
+`callbacks`, `progressState`). `FluentBar.future` takes `title`, `id`, `type`, `successType`,
+`errorType` and `options` besides `loading`, `success` and `error`.
+
+The presets set these: `toast` lasts 2 s, sits at the bottom and has no swipe, tap, pause on touch,
+icon or close button; `banner` is persistent, at the top, and cannot be dismissed by hand; `loading`
+is an indeterminate progress without swipe and tap (`linear: true` for a line); `snack` sits at the
+bottom without an icon and takes an `action` and `onAction`. A preset can still be changed with the chain.
 
 `FluentBarType.guard(type)` returns the type wrapped so that a getter that throws gives a default
 instead. The library does it itself; use it in your own builder or listener that reads a type it
@@ -69,6 +85,8 @@ Values to listen to (`ValueListenable`s on the controller) instead of polling:
 | `progressStateNotifier`, `taskProgressNotifier` | the progress state / its 0...1 value |
 | `isActionExecutingNotifier` | whether an action handler runs or the bar is loading |
 
+Adding a listener to the notifiers of a bar that has ended is ignored; it does not throw.
+
 The entry also has `sequence`, the creation order (useful in a custom queue strategy).
 
 </details>
@@ -108,6 +126,12 @@ Parts that have no chain method are set through the objects themselves:
   [Overriding settings](settings.md#overriding-settings).
 - `FluentBarBehavior`: everything is in that table, plus `progressCompletedHaptic` and
   `withGestures(isSwipeEnabled:, dismissOnTap:)`.
+- `withLinearProgress` and `withCircularProgress` take `value`, `state`, `showText`, `position`,
+  `color`, `textEffect`, `successIconDuration` and `animationDuration` (circular also `size`). The
+  default `position` is `bottom` for the line and `replaceIcon` for the ring.
+- `FluentBarCloseButton`: `controller`, `icon`, `size` (18), `color`, `padding`, `semanticLabel`.
+- `FluentBarUpdateRate` intervals: `low` 100 ms, `medium` 50, `high` 33, `fps60` 16, `fps120` 8; a
+  custom interval is kept between 5 ms and 1 s.
 - `FluentBarProgressTheme`: `style`, `position`, `showText`, `textAlign`, `textEffect`,
   `textEffectDuration`, `animationDuration`, `thickness`, `size`, `progressColor`,
   `trackDecoration`, `textStyle`, `successIcon`, `successIconColor`, `successIconDuration`,
@@ -162,7 +186,7 @@ FluentBar.show<Order>(
 
 Progress states are classes: `FluentBarProgressState.value(0...1)` (`FluentBarProgressValue`),
 `.fraction(current, total)` (`FluentBarProgressFraction`), `.bytes(received, total)`
-(`FluentBarProgressBytes`), `.indeterminate()` (`FluentBarProgressIndeterminate`). `state.format()` gives the text the default label shows, and
+(`FluentBarProgressBytes`), `.indeterminate()` (`FluentBarProgressIndeterminate`). `state.format()` gives the text the default label shows (`updateBytes` also takes a `label`: `FluentBarBytesLabel.amount`, `percent` or `both`), and
 `FluentBarProgressLabel` is the widget that draws it with the text effects.
 
 </details>

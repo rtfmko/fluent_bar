@@ -9,6 +9,9 @@ class FluentBarErrorHandler {
 
   /// Reports an error to the handlers (`FluentBar.addErrorHandler`) and prints it in debug builds.
   ///
+  /// With no handler registered, an error (not a warning) goes to [FlutterError.reportError]
+  /// instead, in release builds too, so it is never lost.
+  ///
   /// Never throws. A ready [FluentBarException] is passed on as is, with its own type and
   /// severity; [type] and [severity] are ignored for it.
   void handle(Object error, FluentBarErrorType type, [StackTrace? stackTrace, FluentBarErrorSeverity? severity, String? debugContext]) {
@@ -16,7 +19,13 @@ class FluentBarErrorHandler {
         ? error
         : FluentBarException(error: error, stackTrace: stackTrace ?? StackTrace.current, type: type, severity: severity ?? FluentBarErrorSeverity.error);
 
-    FluentBarManager.instance.notifyErrors(exception, exception.stackTrace);
+    final FluentBarManager manager = FluentBarManager.instance;
+    if (!manager.hasErrorHandlers && !exception.severity.isWarning) {
+      FlutterError.reportError(FlutterErrorDetails(exception: exception, stack: exception.stackTrace, library: 'fluent_bar', context: ErrorDescription(debugContext ?? exception.type.displayName)));
+      return;
+    }
+
+    manager.notifyErrors(exception, exception.stackTrace);
 
     if (kDebugMode) {
       final bool isWarning = exception.severity.isWarning;

@@ -142,6 +142,11 @@ void main() {
     const FluentBarConfig dummyConfig = FluentBarConfig();
 
     testWidgets('should fallback to default transition when custom transitionBuilder throws', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
+
       final FluentBarItem<dynamic> item = FluentBarItem<dynamic>(
         type: FluentBarType.info,
         message: 'Fallback Transition Message',
@@ -162,9 +167,15 @@ void main() {
       expect(find.text('Fallback Transition Message'), findsOneWidget);
       expect(find.byType(SlideTransition), findsWidgets);
       expect(find.byType(FadeTransition), findsWidgets);
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.customBuilderTransition));
     });
 
     testWidgets('should fallback to DefaultFluentBarWidget when custom appearance builder throws', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
+
       final FluentBarItem<dynamic> item = FluentBarItem<dynamic>(
         type: FluentBarType.info,
         message: 'Fallback Content Message',
@@ -184,6 +195,7 @@ void main() {
 
       expect(find.text('Fallback Content Message'), findsOneWidget);
       expect(find.byWidgetPredicate((Widget widget) => widget is DefaultFluentBarWidget), findsOneWidget);
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.customBuilderAppearance));
     });
   });
 

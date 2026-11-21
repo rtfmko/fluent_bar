@@ -731,16 +731,17 @@ void main() {
       await cleanup(tester);
     });
 
-    testWidgets('forceItem removes queued duplicates of the same id', (WidgetTester tester) async {
+    testWidgets('forceItem with the id of a queued bar shows that bar, updated', (WidgetTester tester) async {
       await boot(tester);
       show('Active');
-      final FluentBarEntry<void>? stale = show('Stale', id: 'x');
+      final FluentBarEntry<void>? queued = show('Stale', id: 'x');
 
-      FluentBar.forceItem<void>(FluentBarItem<void>(id: 'x', type: FluentBarType.info, message: 'Fresh', isPersistent: true));
+      final FluentBarEntry<void> forced = FluentBar.forceItem<void>(FluentBarItem<void>(id: 'x', type: FluentBarType.info, message: 'Fresh', isPersistent: true));
 
+      expect(forced, same(queued));
+      expect(FluentBar.mainActiveItem, same(queued));
       expect(FluentBar.mainActiveItem?.currentItem.message, 'Fresh');
       expect(FluentBar.mainQueueLength, 0);
-      expect(stale!.internalController.isDisposed, isTrue);
       await cleanup(tester);
     });
 
@@ -871,7 +872,7 @@ void main() {
       await cleanup(tester);
     });
 
-    testWidgets('closeAll empties the queues and closes active bars with the given reason', (WidgetTester tester) async {
+    testWidgets('closeAll empties the queues and closes every bar, waiting ones included, with the given reason', (WidgetTester tester) async {
       await boot(tester);
       final List<FluentBarDismissReason> reasons = <FluentBarDismissReason>[];
       final FluentBarCallbacks<void> callbacks = FluentBarCallbacks<void>(onDismiss: (_, FluentBarMetrics m) => reasons.add(m.dismissReason));
@@ -884,7 +885,7 @@ void main() {
 
       expect(FluentBar.activeItems, isEmpty);
       expect(FluentBar.allQueueLength, 0);
-      expect(reasons, <FluentBarDismissReason>[FluentBarDismissReason.tap, FluentBarDismissReason.tap]);
+      expect(reasons, <FluentBarDismissReason>[FluentBarDismissReason.tap, FluentBarDismissReason.tap, FluentBarDismissReason.tap]);
       expect(queued!.internalController.isDisposed, isTrue);
       expect(eventsOf('Queued'), contains(FluentBarAnalyticsEvent.dismissed));
     });

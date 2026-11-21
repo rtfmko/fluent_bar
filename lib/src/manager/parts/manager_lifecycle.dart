@@ -54,7 +54,7 @@ extension FluentBarManagerLifecycle on FluentBarManager {
       }
     }
 
-    if (!discardQueuedByController(controller)) {
+    if (!discardQueuedByController(controller, reason: reason)) {
       if (controller is FluentBarControllerImpl) {
         controller.changeState(FluentBarLifecycleState.dismissed);
         controller.dispose();
@@ -74,8 +74,14 @@ extension FluentBarManagerLifecycle on FluentBarManager {
 
   /// Clears the queues and closes the bars on screen with their exit animation.
   Future<void> dismissAll({FluentBarDismissReason reason = FluentBarDismissReason.manual, OverlayState? overlayState, bool skipAnimation = false}) async {
-    _discardQueued();
-    await dismissActive(reason: reason, overlayState: overlayState, skipAnimation: skipAnimation);
+    // Only the bars that are there now: one shown from an onDismiss of a waiting bar is a new bar and stays.
+    final List<(FluentBarRegion, FluentBarEntry<dynamic>)> shown = _shownBars();
+    _discardQueued(reason: reason);
+
+    await Future.wait(<Future<void>>[
+      for (final (FluentBarRegion region, FluentBarEntry<dynamic> active) in shown)
+        if (identical(_activeItems[region], active)) _dismissCurrentInRegion(region, reason: reason, overlayState: overlayState, skipAnimation: skipAnimation),
+    ]);
   }
 
   Future<void> _dismissCurrentInRegion(FluentBarRegion region, {FluentBarDismissReason reason = FluentBarDismissReason.manual, OverlayState? overlayState, bool skipAnimation = false}) async {
@@ -143,7 +149,12 @@ extension FluentBarManagerLifecycle on FluentBarManager {
     notifyAnalytics(FluentBarAnalyticsEvent.dismissed, item, metrics: metrics);
   }
 
-  void _discard(FluentBarEntry<dynamic> entry, {FluentBarAnalyticsEvent? event}) {
+  /// Ends a bar that is not on screen.
+  ///
+  /// [reason] is given for a bar that waited in the queue: it ends like a shown one, once, with
+  /// `onDismiss` and the `dismissed` event. [event] is reported before that (`queueOverflow` for a
+  /// bar dropped because the queue was full); a bar that never got into the queue gets only [event].
+  void _discard(FluentBarEntry<dynamic> entry, {FluentBarAnalyticsEvent? event, FluentBarDismissReason? reason}) {
     for (final FluentBarRegion region in FluentBarRegion.values) {
       if (identical(_forcedNexts[region], entry)) _forcedNexts[region] = null;
     }
@@ -154,20 +165,46 @@ extension FluentBarManagerLifecycle on FluentBarManager {
     final FluentBarItem<dynamic> item = entry.currentItem;
 
     // A bar that never reached the screen still tells how long it waited and why it is gone.
-    final bool isHeard = _analyticsListeners != null && event != null && !_config.disabledAnalyticsEvents.contains(event);
-    final FluentBarMetrics? metrics = !isHeard
-        ? null
-        : switch (event) {
-            FluentBarAnalyticsEvent.queueOverflow => _buildMetrics(entry, FluentBarDismissReason.dropped),
-            FluentBarAnalyticsEvent.dismissed => _buildMetrics(entry, FluentBarDismissReason.manual),
-            _ => null,
-          };
+    final bool isHeard = _analyticsListeners != null && event == FluentBarAnalyticsEvent.queueOverflow && !_config.disabledAnalyticsEvents.contains(event);
+    final FluentBarMetrics? overflowMetrics = isHeard ? _buildMetrics(entry, FluentBarDismissReason.dropped) : null;
+    final FluentBarMetrics? endMetrics = reason == null ? null : _buildMetrics(entry, reason);
 
     ctrl.changeState(FluentBarLifecycleState.dismissed);
     ctrl.dispose();
 
-    if (event != null) {
-      notifyAnalytics(event, item, metrics: metrics);
+    if (event == null && endMetrics == null) return;
+    void notify() {
+      if (event != null) notifyAnalytics(event, item, metrics: overflowMetrics);
+      if (endMetrics != null) _announceDismissed(item, endMetrics);
+    }
+
+    if (_queueChangeDepth > 0) {
+      (_pendingEndNotifications ??= <void Function()>[]).add(notify);
+    } else {
+      notify();
+    }
+  }
+
+  /// Runs [change] on the queues; the bars it ends are announced after it, when the queues are
+  /// consistent again.
+  R _changeQueues<R>(R Function() change) {
+    _queueChangeDepth++;
+    try {
+      return change();
+    } finally {
+      _queueChangeDepth--;
+      if (_queueChangeDepth == 0) _flushEndNotifications();
+    }
+  }
+
+  void _flushEndNotifications() {
+    // A notification may end more bars; those are announced in the same loop.
+    while (_pendingEndNotifications != null) {
+      final List<void Function()> pending = _pendingEndNotifications!;
+      _pendingEndNotifications = null;
+      for (final void Function() notify in pending) {
+        notify();
+      }
     }
   }
 
@@ -205,5 +242,7 @@ extension FluentBarManagerLifecycle on FluentBarManager {
     _topInsetNotifier.value = 0;
     _bottomInsets.clear();
     _bottomInsetNotifier.value = 0;
+    _allQueueLengthNotifier?.dispose();
+    _allQueueLengthNotifier = null;
   }
 }

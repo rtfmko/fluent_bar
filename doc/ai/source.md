@@ -1,6 +1,6 @@
 # Where things are
 
-Version: 1.0.0. Read this to find a class in the source of the package, or a live example in the demo app to send the user to.
+Version: 1.0.1. Read this to find a class in the source of the package, or a live example in the demo app to send the user to.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Where things are in the source
@@ -14,7 +14,10 @@ The rules in `AI_GUIDE.md` apply here too.
 | `lib/src/interfaces/` | `FluentBarController`, `FluentBarTheme` (+ built-in themes), `FluentBarType` (+ built-in types), `FluentBarQueueStrategy` |
 | `lib/src/strategies/` | queue strategies |
 | `lib/src/manager/` | queue, lifecycle, overlay, relocation, analytics (internal) |
-| `lib/src/widgets/` | the bar widgets, `FluentBarTopInset`, `FluentBarBottomInset`, `FluentBarCloseButton`, `FluentBarOwner` |
+| `lib/src/controllers/` | the controller implementation (internal) and `FluentBarObserver` |
+| `lib/src/exceptions/`, `lib/src/error_handler/` | `FluentBarException`; the error handler that user code runs through |
+| `lib/src/internal/`, `lib/src/utils/` | private helpers (internal) |
+| `lib/src/widgets/` | the bar widgets, `FluentBarTopInset`, `FluentBarBottomInset`, `FluentBarCloseButton`, `FluentBarOwner`, `FluentBarProgressLabel`, `FluentBarTaskProgressWidget` |
 | `example/lib/screens/` | a runnable screen for every feature |
 
 Where each topic is shown live. The example app is also online at https://rtfmko.github.io/fluent_bar/.

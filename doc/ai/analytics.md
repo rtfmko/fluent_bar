@@ -1,6 +1,6 @@
 # Analytics and metrics
 
-Version: 1.0.0. Read this to send bar events to an analytics service or to read the metrics of a bar.
+Version: 1.0.1. Read this to send bar events to an analytics service or to read the metrics of a bar.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Analytics and metrics
@@ -51,12 +51,20 @@ FluentBar.removeAnalyticsListener(onBarEvent);
     `paused_ms`, `dismiss_reason`, `timed_out`, `was_visible`, `was_forced`, `was_tapped`,
     `was_action_tapped`, `was_untouched`, `had_action`, `update_count`, `progress_outcome`,
     `interactions`, `position`, `type_name`, `preset`, `tags`, `id`.
+- `FluentBarInteraction` values: `tap`, `action`, `hold`, `swipe`, `close`, `accessibility`;
+  `metrics.countOf(interaction)` counts one; the flat map has an `interaction_<name>` key for each.
+- A waiting bar removed by a close call, `clearQueue`, `dismissAndClear` or its owner gets one
+  `dismissed` event and `onDismiss`, like a shown bar. A waiting bar pushed out of a full queue (by a
+  forced bar, a lower `maxQueueLength`, a queue strategy) gets `queueOverflow`, then `dismissed` with
+  reason `dropped`, and `onDismiss`. A bar that does not fit when shown gets only `queueOverflow`
+  (`show()` returns `null`, no `onDismiss`). These events and callbacks come after the call that ended
+  the bar has finished with the queues.
 - `relocated` carries `payload.previousPosition`.
 - **Sending to an analytics service: use `payload.toFlatMap()`** (or `metrics.toFlatMap()`), not
   `toMap()`. It returns `Map<String, Object>` with strings and numbers only: flags are `1` / `0`,
   interactions become `interaction_tap`, `interaction_action`..., absent values are left out, and
   the payload version adds `id`, `type_name`, `preset`, `tags`, `position`, `action_name`, `pause_reason`,
-  `previous_position`. Firebase Analytics rejects booleans and nested maps, so `toMap()` does not fit.
+  `previous_position`. For an event with metrics the metrics value of `position` (where the bar closed) replaces the requested one. Firebase Analytics rejects booleans and nested maps, so `toMap()` does not fit.
 - `paused` / `resumed` carry `pauseReason`: `manual`, `loading`, `action`, `touch`.
 - Mute events with `FluentBarConfig(disabledAnalyticsEvents: {FluentBarAnalyticsEvent.requested})`
   or `patchConfig`; a muted event is not created at all. Suggest this when a listener only needs a

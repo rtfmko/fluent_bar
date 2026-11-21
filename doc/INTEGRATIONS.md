@@ -409,8 +409,10 @@ shorten them before sending. To tell your own kinds of bars apart, label them wi
 ## Crash reporting
 
 Your callbacks, builders, themes and types are isolated: when one throws, the bar still appears
-and the error goes to the handlers registered with `FluentBar.addErrorHandler`. Nothing reaches
-`FlutterError.onError`, so without a handler these errors are visible only in the debug console.
+and the error goes to the handlers registered with `FluentBar.addErrorHandler`. With a handler
+registered, nothing reaches `FlutterError.onError`. Without a handler, a report with the severity
+`error` goes to `FlutterError.reportError` (also in release builds), and a `warning` is only printed in
+the debug console.
 
 `error.severity` tells real failures from misuse the library recovered from (no overlay yet, a
 full queue). The second kind is worth a log line, not a crash report.

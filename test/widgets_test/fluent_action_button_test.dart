@@ -71,6 +71,11 @@ void main() {
     });
 
     testWidgets('should handle exception thrown by onPressed gracefully without crashing', (WidgetTester tester) async {
+      final List<FluentBarException> errors = <FluentBarException>[];
+      void onError(FluentBarException error, StackTrace stackTrace) => errors.add(error);
+      FluentBar.addErrorHandler(onError);
+      addTearDown(() => FluentBar.removeErrorHandler(onError));
+
       final FluentBarItem<String> item = FluentBarItem<String>(
         type: FluentBarType.info,
         id: 'action_test_error',
@@ -105,6 +110,7 @@ void main() {
       await tester.pump();
 
       expect(entry.controller.stateNotifier.value, FluentBarLifecycleState.dismissed);
+      expect(errors.map((FluentBarException e) => e.type), contains(FluentBarErrorType.actionPressed));
     });
   });
 }

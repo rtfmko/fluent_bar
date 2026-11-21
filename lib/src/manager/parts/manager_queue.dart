@@ -2,8 +2,15 @@ part of '../fluent_bar_manager.dart';
 
 /// The queue: showing, duplicates, priorities and forced bars.
 extension FluentBarManagerQueue on FluentBarManager {
-  /// Replaces the config, rebuilds the bars on screen and rebalances the queues.
+  /// Replaces the config, rebuilds the bars on screen and rebalances the queues. A config equal to
+  /// the current one (functions included) changes nothing.
   void updateConfig(FluentBarConfig newConfig) {
+    if (newConfig == _config && newConfig.hasSameFunctionsAs(_config)) return;
+
+    _changeQueues(() => _replaceConfig(newConfig));
+  }
+
+  void _replaceConfig(FluentBarConfig newConfig) {
     _config = newConfig;
     _configNotifier.value = _config;
 
@@ -22,7 +29,7 @@ extension FluentBarManagerQueue on FluentBarManager {
       _updateQueueNotifier(region);
 
       for (final FluentBarEntry<dynamic> entry in dropped) {
-        _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow);
+        _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow, reason: FluentBarDismissReason.dropped);
       }
     }
 
@@ -86,18 +93,20 @@ extension FluentBarManagerQueue on FluentBarManager {
   }
 
   /// Shows the next waiting bar in every free region.
-  void tryDequeuePending() {
+  void tryDequeuePending() => _changeQueues(() {
     for (final FluentBarRegion region in FluentBarRegion.values) {
       if (_queueOf(region).isNotEmpty && _activeItems[region] == null) {
         _showNextForRegion(region);
       }
     }
-  }
+  });
 
   /// Shows [item], updates the bar it duplicates, or queues it.
   ///
   /// Returns the entry that now represents the bar, or `null` if the bar was dropped.
-  FluentBarEntry<T>? show<T>(FluentBarItem<T> item, {OverlayState? overlayState}) {
+  FluentBarEntry<T>? show<T>(FluentBarItem<T> item, {OverlayState? overlayState}) => _changeQueues(() => _show<T>(item, overlayState: overlayState));
+
+  FluentBarEntry<T>? _show<T>(FluentBarItem<T> item, {OverlayState? overlayState}) {
     _purgeDisposed();
 
     final FluentBarDuplicatePolicy requestedPolicy = item.resolveDuplicatePolicy(_config);
@@ -135,7 +144,8 @@ extension FluentBarManagerQueue on FluentBarManager {
         return existing is FluentBarEntry<T> ? existing : null;
       }
 
-      return _mergeIntoQueued<T>(existing, item, overlayState);
+      // An `ignore` duplicate that gets through only because it carries new progress brings only that progress.
+      return _mergeIntoQueued<T>(existing, item, overlayState, keepsPlace: policy == FluentBarDuplicatePolicy.ignore);
     }
 
     if (!allowsDuplicates) _reportPayloadTypeMismatch(item);
@@ -164,7 +174,7 @@ extension FluentBarManagerQueue on FluentBarManager {
 
     // The queue length is published once at the end; otherwise listeners would see "1 -> 0" for
     // every bar that goes straight to the screen.
-    final QueueOperationResult result = _enqueueViaStrategy(region, newEntry, notify: false);
+    final QueueOperationResult result = _enqueueViaStrategy(region, newEntry, notify: false, isNew: true);
     if (!_queueOf(region).contains(newEntry)) {
       _updateQueueNotifier(region);
       return null;
@@ -256,13 +266,15 @@ extension FluentBarManagerQueue on FluentBarManager {
   /// they are not duplicates.
   bool _isDuplicate(FluentBarItem<dynamic> incoming, FluentBarEntry<dynamic> existing) => existing.internalController.accepts(incoming) && incoming.isDuplicateOf(existing.currentItem, _config);
 
-  FluentBarEntry<T>? _mergeIntoQueued<T>(FluentBarEntry<dynamic> existing, FluentBarItem<T> incomingItem, OverlayState? overlayState) {
+  /// Updates the waiting bar [existing] with [incomingItem]. The merged bar takes the higher priority
+  /// and is forced if either is, unless [keepsPlace]: then its priority and place stay as they were.
+  FluentBarEntry<T>? _mergeIntoQueued<T>(FluentBarEntry<dynamic> existing, FluentBarItem<T> incomingItem, OverlayState? overlayState, {bool keepsPlace = false}) {
     final FluentBarItem<dynamic> incoming = _updatedItem(existing, incomingItem);
 
     final FluentBarPriority existingPriority = existing.resolvePriority(_config);
-    final FluentBarPriority incomingPriority = incomingItem.behavior.priority ?? incomingItem.resolvedType(_config).priority;
+    final FluentBarPriority incomingPriority = keepsPlace ? existingPriority : incomingItem.behavior.priority ?? incomingItem.resolvedType(_config).priority;
     final FluentBarPriority priority = incomingPriority.weight >= existingPriority.weight ? incomingPriority : existingPriority;
-    final bool force = existing.isForce || incomingItem.behavior.isForce;
+    final bool force = existing.isForce || (!keepsPlace && incomingItem.behavior.isForce);
     final bool tierChanged = priority.weight != existingPriority.weight || force != existing.isForce;
 
     final FluentBarItem<dynamic> merged = incoming.copyWith(
@@ -353,7 +365,9 @@ extension FluentBarManagerQueue on FluentBarManager {
     }
   }
 
-  void _showNextForRegion(FluentBarRegion region, {OverlayState? overlayState, bool notify = true}) {
+  void _showNextForRegion(FluentBarRegion region, {OverlayState? overlayState, bool notify = true}) => _changeQueues(() => _takeNextForRegion(region, overlayState: overlayState, notify: notify));
+
+  void _takeNextForRegion(FluentBarRegion region, {OverlayState? overlayState, bool notify = true}) {
     // Not final: the list of the region is replaced after every dequeue, and the loop must see the current one.
     List<FluentBarEntry<dynamic>> regionQueue = _queueOf(region);
     if (regionQueue.isEmpty || _occupiedRegion(region) != null) return;
@@ -393,7 +407,7 @@ extension FluentBarManagerQueue on FluentBarManager {
       if (notify) _updateQueueNotifier(region);
 
       for (final FluentBarEntry<dynamic> entry in evicted) {
-        _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow);
+        _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow, reason: FluentBarDismissReason.dropped);
       }
 
       if (dequeuedItem == null) return;
@@ -415,7 +429,10 @@ extension FluentBarManagerQueue on FluentBarManager {
   /// Changes the priority of a queued bar and puts it back in order.
   void updateItemPriority({String? id, FluentBarItem<dynamic>? item, required FluentBarPriority newPriority}) {
     if (id == null && item == null) return;
+    _changeQueues(() => _updateItemPriority(id: id, item: item, newPriority: newPriority));
+  }
 
+  void _updateItemPriority({String? id, FluentBarItem<dynamic>? item, required FluentBarPriority newPriority}) {
     for (final FluentBarRegion region in FluentBarRegion.values) {
       final List<FluentBarEntry<dynamic>> regionQueue = _queueOf(region);
       final int index = regionQueue.indexWhere((FluentBarEntry<dynamic> q) {
@@ -436,31 +453,27 @@ extension FluentBarManagerQueue on FluentBarManager {
   }
 
   /// Shows [item] out of turn, replacing the bar on screen.
-  FluentBarEntry<T> forceItem<T>(FluentBarItem<T> item, {OverlayState? overlayState}) {
-    final FluentBarEntry<T> entry = FluentBarEntry<T>(item: item);
-    final FluentBarRegion region = _regionOf(entry);
-    final List<FluentBarEntry<dynamic>> regionQueue = _queueOf(region);
-
-    if (item.id != null) {
-      final List<FluentBarEntry<dynamic>> duplicates = regionQueue.where((FluentBarEntry<dynamic> q) => q.currentItem.isDuplicateOf(item, _config)).toList();
-      if (duplicates.isNotEmpty) {
-        regionQueue.removeWhere(duplicates.contains);
-        _updateQueueNotifier(region);
-        for (final FluentBarEntry<dynamic> dup in duplicates) {
-          _discard(dup, event: FluentBarAnalyticsEvent.ignoredDuplicate);
-        }
-      }
+  ///
+  /// Duplicates are found the same way as by [show]: a bar that is already on screen or waiting
+  /// is updated (and, if it waits, moved to the screen) instead of a second bar with its id.
+  FluentBarEntry<T> forceItem<T>(FluentBarItem<T> item, {OverlayState? overlayState}) => _changeQueues(() {
+    final FluentBarItem<T> forced = item.copyWith(behavior: item.behavior.copyWith(isForce: true));
+    final FluentBarEntry<T>? shown = _show<T>(forced, overlayState: overlayState);
+    if (shown == null) {
+      // Not reachable today: a duplicate always has the same payload type, and a forced bar is never
+      // dropped. Kept so that the non-null contract holds whatever show() returns.
+      final FluentBarEntry<T> entry = FluentBarEntry<T>(item: forced);
+      return _forceAndShowEntry(entry, _regionOf(entry), overlayState: overlayState);
     }
 
-    notifyAnalytics(FluentBarAnalyticsEvent.requested, entry.currentItem);
-    return _forceAndShowEntry(entry, region, overlayState: overlayState);
-  }
+    // An `ignore` duplicate leaves the waiting bar as it is, but forcing it still brings it to the screen.
+    final FluentBarRegion region = _regionOf(shown);
+    if (!shown.isForce && _queueOf(region).contains(shown)) _forceAndShowEntry(shown, region, overlayState: overlayState);
+    return shown;
+  });
 
   /// Shows an existing entry out of turn.
-  FluentBarEntry<T> forceEntry<T>(FluentBarEntry<T> entry, {OverlayState? overlayState}) {
-    final FluentBarRegion region = _regionOf(entry);
-    return _forceAndShowEntry(entry, region, overlayState: overlayState);
-  }
+  FluentBarEntry<T> forceEntry<T>(FluentBarEntry<T> entry, {OverlayState? overlayState}) => _forceAndShowEntry(entry, _regionOf(entry), overlayState: overlayState);
 
   /// Pulls the queued bar with [id] to the screen out of turn.
   void forceItemFromQueue({required String id, OverlayState? overlayState}) {
@@ -492,7 +505,13 @@ extension FluentBarManagerQueue on FluentBarManager {
     }
   }
 
-  QueueOperationResult _enqueueViaStrategy(FluentBarRegion region, FluentBarEntry<dynamic> incoming, {bool notify = true}) {
+  /// Puts [incoming] into the queue of [region] through the queue strategy. Entries the strategy
+  /// leaves out are dropped; [isNew] says [incoming] was not waiting before, so if it is left out
+  /// it never got into the queue and only `queueOverflow` is reported for it.
+  QueueOperationResult _enqueueViaStrategy(FluentBarRegion region, FluentBarEntry<dynamic> incoming, {bool notify = true, bool isNew = false}) =>
+      _changeQueues(() => _enqueueInRegion(region, incoming, notify: notify, isNew: isNew));
+
+  QueueOperationResult _enqueueInRegion(FluentBarRegion region, FluentBarEntry<dynamic> incoming, {bool notify = true, bool isNew = false}) {
     final List<FluentBarEntry<dynamic>> regionQueue = _queueOf(region);
     QueueOperationResult result;
     try {
@@ -509,13 +528,16 @@ extension FluentBarManagerQueue on FluentBarManager {
     if (notify) _updateQueueNotifier(region);
 
     for (final FluentBarEntry<dynamic> entry in evicted) {
-      _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow);
+      _discard(entry, event: FluentBarAnalyticsEvent.queueOverflow, reason: isNew && identical(entry, incoming) ? null : FluentBarDismissReason.dropped);
     }
 
     return result;
   }
 
-  FluentBarEntry<T> _forceAndShowEntry<T>(FluentBarEntry<T> entry, FluentBarRegion region, {OverlayState? overlayState}) {
+  FluentBarEntry<T> _forceAndShowEntry<T>(FluentBarEntry<T> entry, FluentBarRegion region, {OverlayState? overlayState}) =>
+      _changeQueues(() => _forceEntryInRegion<T>(entry, region, overlayState: overlayState));
+
+  FluentBarEntry<T> _forceEntryInRegion<T>(FluentBarEntry<T> entry, FluentBarRegion region, {OverlayState? overlayState}) {
     final FluentBarItem<T> forcedItem = entry.currentItem.copyWith(behavior: entry.currentItem.behavior.copyWith(isForce: true));
 
     if (identical(_activeItems[region], entry)) {
@@ -548,7 +570,7 @@ extension FluentBarManagerQueue on FluentBarManager {
     while (regionQueue.length > limit) {
       final int victimIndex = regionQueue.lastIndexWhere((FluentBarEntry<dynamic> e) => !identical(e, entry));
       if (victimIndex == -1) break;
-      _discard(regionQueue.removeAt(victimIndex), event: FluentBarAnalyticsEvent.queueOverflow);
+      _discard(regionQueue.removeAt(victimIndex), event: FluentBarAnalyticsEvent.queueOverflow, reason: FluentBarDismissReason.dropped);
     }
     _updateQueueNotifier(region);
 
@@ -561,8 +583,9 @@ extension FluentBarManagerQueue on FluentBarManager {
     return entry;
   }
 
-  /// Removes the bar of [controller] from the queue. Returns `false` if it was not queued.
-  bool discardQueuedByController(FluentBarInternalController<dynamic> controller) {
+  /// Removes the bar of [controller] from the queue; it ends with [reason]. Returns `false` if it
+  /// was not queued.
+  bool discardQueuedByController(FluentBarInternalController<dynamic> controller, {FluentBarDismissReason reason = FluentBarDismissReason.manual}) => _changeQueues(() {
     for (final FluentBarRegion region in FluentBarRegion.values) {
       final List<FluentBarEntry<dynamic>> regionQueue = _queueOf(region);
       final int index = regionQueue.indexWhere((FluentBarEntry<dynamic> e) => identical(e.internalController, controller));
@@ -571,12 +594,12 @@ extension FluentBarManagerQueue on FluentBarManager {
         if (identical(_forcedNexts[region], entry)) _forcedNexts[region] = null;
         _updateQueueNotifier(region);
 
-        _discard(entry, event: FluentBarAnalyticsEvent.dismissed);
+        _discard(entry, reason: reason);
         return true;
       }
     }
     return false;
-  }
+  });
 
   void _purgeDisposed() {
     for (final FluentBarRegion region in FluentBarRegion.values) {
@@ -587,18 +610,21 @@ extension FluentBarManagerQueue on FluentBarManager {
     }
   }
 
-  void _discardQueued() {
+  /// Empties every queue first and only then ends the bars that waited, so that a bar shown from
+  /// their `onDismiss` is queued anew and survives.
+  void _discardQueued({FluentBarDismissReason reason = FluentBarDismissReason.manual}) => _changeQueues(() {
+    final List<FluentBarEntry<dynamic>> queued = <FluentBarEntry<dynamic>>[];
     for (final FluentBarRegion region in FluentBarRegion.values) {
-      final List<FluentBarEntry<dynamic>> queued = _queueOf(region);
+      queued.addAll(_queueOf(region));
       _queues[region] = <FluentBarEntry<dynamic>>[];
       _forcedNexts[region] = null;
       _updateQueueNotifier(region);
-
-      for (final FluentBarEntry<dynamic> entry in queued) {
-        _discard(entry, event: FluentBarAnalyticsEvent.dismissed);
-      }
     }
-  }
+
+    for (final FluentBarEntry<dynamic> entry in queued) {
+      _discard(entry, reason: reason);
+    }
+  });
 
   /// Removes the waiting bars. Shown ones stay on screen.
   void clearQueue() => _discardQueued();
@@ -606,15 +632,20 @@ extension FluentBarManagerQueue on FluentBarManager {
   /// Removes everything at once, the queue and the shown bars, without the exit animation.
   /// For a normal animated close there is [dismissAll].
   void dismissAndClear() {
+    // Only the bars that are there now: one shown from an onDismiss called here is a new bar and stays.
+    final List<(FluentBarRegion, FluentBarEntry<dynamic>)> shown = _shownBars();
     _discardQueued();
 
-    for (final FluentBarRegion region in FluentBarRegion.values) {
-      // _finalizeDismiss removes the overlay entry and clears the region itself. Clearing again here
-      // is wrong: onDismiss may show a new bar synchronously, and that one would be wiped.
-      final FluentBarEntry<dynamic>? active = _activeItems[region];
-      if (active != null) {
-        _finalizeDismiss(active, region, FluentBarDismissReason.manual, _buildMetrics(active, FluentBarDismissReason.manual));
-      }
+    for (final (FluentBarRegion region, FluentBarEntry<dynamic> active) in shown) {
+      // _finalizeDismiss removes the overlay entry and clears the region itself, and does nothing if
+      // the bar is no longer there.
+      _finalizeDismiss(active, region, FluentBarDismissReason.manual, _buildMetrics(active, FluentBarDismissReason.manual));
     }
   }
+
+  /// The bars on screen with their regions.
+  List<(FluentBarRegion, FluentBarEntry<dynamic>)> _shownBars() => <(FluentBarRegion, FluentBarEntry<dynamic>)>[
+    for (final FluentBarRegion region in FluentBarRegion.values)
+      if (_activeItems[region] case final FluentBarEntry<dynamic> active) (region, active),
+  ];
 }

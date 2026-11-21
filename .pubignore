@@ -25,3 +25,9 @@ migrate_working_dir/
 # Tools for checking the repository.
 /tool/
 /test/_snippets/
+
+# Working notes that live next to the repository, not in it.
+/ROADMAP.md
+/fluent_bar.md
+/fluent_bar_en.md
+/images/

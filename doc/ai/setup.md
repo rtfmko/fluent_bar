@@ -1,6 +1,6 @@
 # Setup
 
-Version: 1.0.0. Read this to set up the package in an app, or to understand how bars, regions and the queue work.
+Version: 1.0.1. Read this to set up the package in an app, or to understand how bars, regions and the queue work.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Setup
@@ -26,6 +26,9 @@ The config can be set or changed at any time, also before `runApp`:
 FluentBar.updateConfig(const FluentBarConfig(defaultPosition: FluentBarPosition.bottom));
 FluentBar.patchConfig((c) => c.copyWith(maxQueueLength: 5));
 ```
+
+A config equal to the current one (functions included) changes nothing, and `FluentBarScope`
+re-applies its config only when it differs from the previous one.
 
 Keep bars clear of app chrome by wrapping it once (heights are measured automatically):
 

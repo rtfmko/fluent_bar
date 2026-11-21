@@ -58,7 +58,7 @@ extension FluentBarManagerRelocation on FluentBarManager {
 
   /// Called by the controller after the item of a queued bar changed: if the position now belongs
   /// to another region, the bar moves to its queue.
-  void syncQueuedRegion(FluentBarInternalController<dynamic> controller) {
+  void syncQueuedRegion(FluentBarInternalController<dynamic> controller) => _changeQueues(() {
     for (final FluentBarRegion region in FluentBarRegion.values) {
       final List<FluentBarEntry<dynamic>> queue = _queueOf(region);
       final int index = queue.indexWhere((FluentBarEntry<dynamic> e) => identical(e.internalController, controller));
@@ -76,11 +76,11 @@ extension FluentBarManagerRelocation on FluentBarManager {
       _showNextForRegion(target);
       return;
     }
-  }
+  });
 
   /// Puts [entry] first in the queue of the region, right after forced entries. The queue limit
   /// still holds: the extra entry is evicted from the end.
-  void _requeueFirst(FluentBarRegion region, FluentBarEntry<dynamic> entry) {
+  void _requeueFirst(FluentBarRegion region, FluentBarEntry<dynamic> entry) => _changeQueues(() {
     final List<FluentBarEntry<dynamic>> queue = _queueOf(region);
 
     int index = 0;
@@ -93,10 +93,10 @@ extension FluentBarManagerRelocation on FluentBarManager {
     while (queue.length > _config.maxQueueLength) {
       final int victimIndex = queue.lastIndexWhere((FluentBarEntry<dynamic> e) => !identical(e, entry));
       if (victimIndex == -1) break;
-      _discard(queue.removeAt(victimIndex), event: FluentBarAnalyticsEvent.queueOverflow);
+      _discard(queue.removeAt(victimIndex), event: FluentBarAnalyticsEvent.queueOverflow, reason: FluentBarDismissReason.dropped);
     }
     _updateQueueNotifier(region);
-  }
+  });
 
   /// The widget of a shown bar was disposed although nobody closed the bar: the overlay itself is
   /// gone (the app recreated the root with `FluentBarScope`, or the navigator). Such a bar is

@@ -1,6 +1,6 @@
 # Per-bar options and enum values
 
-Version: 1.0.0. Read this to look up a parameter of a bar, a field of a model or the values of an enum.
+Version: 1.0.1. Read this to look up a parameter of a bar, a field of a model or the values of an enum.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Per-bar options and enum values
@@ -18,13 +18,19 @@ Use these exact names; do not invent others.
   `progressTheme`, `builder`, `transitionBuilder`, `customEffectBuilder`.
 - A `FluentBarType` can override the same settings as getters (`duration`, `isPersistent`,
   `position`, `priority`, `showIcon`, `icon`, `backgroundColor`, `entranceAnimation`, `haptic`, …);
-  `null` means "ask the config".
+  `null` means "ask the config". Not for `haptic`, `progressCompletedHaptic` (default `none`) and
+  `priority` (default `normal`): they have no config level and resolve bar, then type, then that default.
 
 Everything else that is public, so nothing has to be guessed:
 
-- `FluentBar`, besides showing: `showItem(item)` / `forceItem(item)` for a ready `FluentBarItem`;
-  `currentConfig`; `measuredTopInset` / `measuredBottomInset` (heights reported by the inset
+- `FluentBar`, besides showing: `showItem(item)` / `forceItem(item)` for a ready `FluentBarItem`.
+  Every call that shows or closes a bar takes `overlayState:`, the overlay to use instead of the one
+  the library finds (the scope, then the navigator). `initialize` takes `navigatorKey:`.
+  `FluentBarOptions<T>` fields: `meta`, `tags`, `behavior`, `actions`, `appearance`, `callbacks`,
+  `progressState`; `FluentBar.show` and the `show…` calls take `isPersistent` and `options`.
+  Also `currentConfig`; `measuredTopInset` / `measuredBottomInset` (heights reported by the inset
   widgets); `allQueueLength`, `mainQueueLength`, `bottomQueueLength`; `removeErrorHandler`.
+- `FluentBarCloseButton(controller:, icon:, size: 18, color:, padding:, semanticLabel:)`.
 - `FluentBarController`, besides the calls in [live-bars.md](live-bars.md): `subtractDuration(duration)`,
   `triggerEffect(FluentBarEffect, {intensity, duration, repeat})`, `customEffect(…)`, `force()`,
   `handleAction(…)`, `setLoading(isLoading:, …)`.
@@ -49,13 +55,16 @@ Everything else that is public, so nothing has to be guessed:
   `isSwipeEnabled`, `dismissOnTap`, `pauseOnTouch`, `semantics`, `dismissDirection`, `useSafeArea`,
   `topInset`, `bottomInset`, `duplicatePolicy`, `relocationStrategy`, `timeoutUpdateInterval`, `haptic`,
   `progressCompletedHaptic`, `customHaptic`, `customProgressCompletedHaptic`, `showIcon`, `icon`,
-  `backgroundColor`, `themeMode`, `showCloseButton`, `showTimeoutBar`, `timeoutBarColor`, `timeoutBarPosition`,
+  `backgroundColor`, `themeMode`, `showCloseButton`, `closeIcon`, `showTimeoutBar`, `timeoutBarColor`, `timeoutBarPosition`,
   `timeoutBarDirection`, `entranceAnimation`, `transitionDuration`, `reverseTransitionDuration`,
   `disableAnimations`, `progressTheme`, `builder`, `positionBuilder`, `transitionBuilder`,
   `customEffectBuilder`. `copyWith` takes the same names except `name` and `kind`: a copy keeps
   those of its base.
-- `FluentBarTheme` methods a custom theme may override; each gets `(context, type, {themeMode})`:
-  required `boxDecoration` (also gets `theme`), `titleStyle`, `messageStyle`; optional
+- `FluentBarTheme` methods a custom theme may override; most get `(context, type, {themeMode})`.
+  The others: `boxDecoration(context, type, theme, {themeMode})`, `defaultIcon(context, type,
+  {themeMode, overrideSize})`, `wrapInteractiveContainer(context, child, type, {themeMode})`,
+  `wrapContainer(context, child, entry, type, {themeMode})` and `buildTimeoutBar(context, entry, theme,
+  type, {themeMode})`. Required: `boxDecoration`, `titleStyle`, `messageStyle`; optional
   `actionStyle`, `actionDecoration`, `actionInternalPadding`, `actionsConstraints`,
   `actionMaxLines`, `actionOverflow`, `actionTextAlign`, `actionLoaderColor`,
   `actionLoadingWidget`, `backgroundColor`, `borderRadius`, `constraints`, `padding`, `margin`,
@@ -65,7 +74,10 @@ Everything else that is public, so nothing has to be guessed:
   `timeoutBarColor`, `timeoutBarBackgroundColor`, `timeoutBarMinHeight`,
   `timeoutBarBorderRadius`, `buildTimeoutBar`, `wrapContainer`, `wrapInteractiveContainer`,
   `isDarkMode`. `FluentBarTheme.x.copyWith(…)` takes the same names as callbacks
-  `(context, type, themeMode) => value`.
+  `(context, type, themeMode) => value`; `boxDecoration` (no `theme`), `defaultIcon` (extra
+  `overrideSize`), `wrapInteractiveContainer` (extra `child`), `wrapContainer` (extra `child`, `entry`)
+  and `buildTimeoutBar` (extra `entry`, no `theme`) take the arguments after `context` that their
+  method takes, except where noted.
 
 | Enum | Values |
 |---|---|
@@ -85,4 +97,9 @@ Everything else that is public, so nothing has to be guessed:
 | `FluentBarSemantics` | `announce`, `quiet`, `hidden` |
 | `FluentBarBytesLabel` | `amount`, `percent`, `both` |
 | `FluentBarPauseReason` | `manual`, `loading`, `action`, `touch` |
-| `FluentBarUpdateRate` | `low`, `medium`, `high`, `fps60`, `fps120`, or `FluentBarUpdateRate(interval)`, `.custom(interval)`, `.ms(milliseconds)` |
+| `FluentBarUpdateRate` | `low` (100 ms), `medium` (50), `high` (33), `fps60` (16), `fps120` (8), or `FluentBarUpdateRate(interval)`, `.custom(interval)`, `.ms(milliseconds)`; the interval is kept between 5 ms and 1 s |
+| `FluentBarPriority` | `low`, `normal`, `high`, `critical` (`weight`) |
+| `FluentBarDuplicatePolicy` | `update`, `updateAndResetTimer`, `ignore`, `allow` |
+| `FluentBarRelocationStrategy` | `queueNext`, `forceReplace`, `ignore` |
+| `FluentBarAnalyticsEvent` | `requested`, `queued`, `shown`, `updated`, `ignoredDuplicate`, `relocated`, `tapped`, `actionTapped`, `paused`, `resumed`, `progressCompleted`, `progressFailed`, `progressCanceled`, `queueOverflow`, `dismissed` |
+| `FluentBarErrorType` | see [errors.md](errors.md) |

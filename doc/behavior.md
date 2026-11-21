@@ -1,10 +1,10 @@
 # Behavior
 
-[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md)
+[Back to the README](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md)
 
 ## A close button
 
-<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.0/doc/media/close_button.gif" width="300" alt="A bar with a cross at the end that closes it"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/rtfmko/fluent_bar/v1.0.1/doc/media/close_button.gif" width="300" alt="A bar with a cross at the end that closes it"></p>
 
 A cross at the end of the bar. It is off by default; turn it on for one bar, for a type or for
 every bar. Useful on the web and desktop, where a swipe is awkward, and on bars that stay until closed.
@@ -17,7 +17,7 @@ FluentBar.patchConfig((config) => config.copyWith(defaultShowCloseButton: true))
 ```
 
 - **It only closes the bar.** A running upload goes on; to stop the task give the bar a Cancel
-  action (see [Download with Cancel](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/README.md#download-with-cancel)).
+  action (see [Download with Cancel](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/README.md#download-with-cancel)).
 - **It stands next to the action**, after it. A tap on the cross does not run the action and is
   not a tap on the bar: `onTap` is not called.
 - **It works on a busy bar too**: while the bar is loading or its action runs, the cross is the
@@ -122,5 +122,5 @@ void onLocaleChanged(AppLocalizations l10n) {
 **A content builder is built above the navigator.** It sees what is provided above `MaterialApp`
 (or inside `MaterialApp.builder`, above `FluentBarScope`), and it does not see a `Provider` or a
 `BlocProvider` created inside a screen. Read the value before showing the bar, or hand the object
-over with `.value`: [State inside a bar](https://github.com/rtfmko/fluent_bar/blob/v1.0.0/doc/INTEGRATIONS.md#state-inside-a-bar).
+over with `.value`: [State inside a bar](https://github.com/rtfmko/fluent_bar/blob/v1.0.1/doc/INTEGRATIONS.md#state-inside-a-bar).
 

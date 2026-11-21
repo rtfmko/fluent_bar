@@ -553,6 +553,32 @@ void main() {
       });
     });
 
+    test('the throttle window is counted from the last accepted tap, on the library clock', () {
+      fakeAsync((FakeAsync async) {
+        final FluentBarControllerImpl<String> c = create(item: itemOf(isPersistent: true));
+        int calls = 0;
+        void onPressed(FluentBarController<String> controller, String? payload) => calls++;
+        void tap() {
+          c.handleAction(onPressed: onPressed, closeOnAction: false);
+          async.flushMicrotasks();
+        }
+
+        tap();
+        async.elapse(const Duration(milliseconds: 300));
+        tap();
+        expect(calls, 1);
+
+        async.elapse(const Duration(milliseconds: 300));
+        tap();
+        expect(calls, 2, reason: 'a blocked tap does not move the window');
+
+        async.elapse(const Duration(milliseconds: 500));
+        tap();
+        expect(calls, 3);
+        c.dispose();
+      });
+    });
+
     test('a throwing action is reported and does not leave the button loading', () {
       fakeAsync((FakeAsync async) {
         final FluentBarControllerImpl<String> c = create(item: itemOf(isPersistent: true));
@@ -636,6 +662,51 @@ void main() {
       expect(c.itemNotifier.value.message, 'Message');
       expect(c.itemNotifier.value.title, 'Title');
       expect(c.itemNotifier.value.type, FluentBarType.info);
+      c.dispose();
+    });
+
+    test('updateProgress with a value or a fraction out of range is ignored and reported as a warning', () {
+      final FluentBarControllerImpl<String> c = create(item: itemOf(progress: const FluentBarProgressValue(0.2)));
+      final List<FluentBarProgressState Function()> invalid = <FluentBarProgressState Function()>[
+        for (final double value in <double>[double.nan, 42, -0.5, double.infinity]) () => FluentBarProgressValue(value),
+        for (final (int, int) fraction in <(int, int)>[(3, 0), (9, 5), (-3, -5)]) () => FluentBarProgressFraction(fraction.$1, fraction.$2),
+      ];
+
+      for (final FluentBarProgressState Function() state in invalid) {
+        errors.clear();
+        expect(() => c.updateProgress(state()), returnsNormally);
+        expect(c.progressStateNotifier.value, const FluentBarProgressValue(0.2));
+        expect(errors.single.severity, FluentBarErrorSeverity.warning);
+        expect(errors.single.type, FluentBarErrorType.invalidCall);
+      }
+      c.dispose();
+    });
+
+    test('failProgress with isPersistent: false lets a persistent bar leave by its timer', () {
+      fakeAsync((FakeAsync async) {
+        final FluentBarControllerImpl<String> c = create(item: itemOf(isPersistent: true, progress: const FluentBarProgressValue(0.2)));
+
+        c.failProgress(message: 'Failed', isPersistent: false);
+        async.flushMicrotasks();
+        expect(c.isAwaitingAnswer, isFalse);
+        expect(remaining(c), const Duration(seconds: 5));
+
+        async.elapse(const Duration(seconds: 6));
+        async.flushMicrotasks();
+        expect(c.isDisposed, isTrue);
+      });
+    });
+
+    test('completeProgress after failProgress takes the success type', () {
+      final FluentBarControllerImpl<String> c = create(item: itemOf(progress: const FluentBarProgressValue(0.2)));
+
+      c.failProgress(message: 'Failed');
+      expect(c.itemNotifier.value.type, FluentBarType.error);
+
+      c.completeProgress(message: 'Done');
+      expect(c.itemNotifier.value.message, 'Done');
+      expect(c.itemNotifier.value.type, FluentBarType.success);
+      expect(c.progressOutcome, FluentBarProgressOutcome.completed);
       c.dispose();
     });
 
@@ -876,6 +947,24 @@ void main() {
       });
     });
 
+    test('NaN or infinite intensity is ignored and reported as a warning', () {
+      fakeAsync((FakeAsync async) {
+        final FluentBarControllerImpl<String> c = create(item: itemOf(isPersistent: true));
+        final List<FluentBarEffectEvent> events = listen(c);
+
+        expect(() => c.shake(intensity: double.nan, duration: const Duration(seconds: -1)), returnsNormally);
+        expect(() => c.pulse(scale: double.infinity, duration: Duration.zero), returnsNormally);
+        expect(() => c.triggerEffect(FluentBarEffect.bounce, intensity: double.negativeInfinity), returnsNormally);
+        async.flushMicrotasks();
+
+        expect(events, isEmpty);
+        expect(c.latestEffect, isNull);
+        expect(errors, hasLength(3));
+        expect(errors.every((FluentBarException e) => e.severity == FluentBarErrorSeverity.warning && e.type == FluentBarErrorType.invalidCall), isTrue);
+        c.dispose();
+      });
+    });
+
     test('invalid values are normalised', () {
       fakeAsync((FakeAsync async) {
         final FluentBarControllerImpl<String> c = create(item: itemOf(isPersistent: true));
@@ -920,6 +1009,42 @@ void main() {
         async.flushMicrotasks();
 
         expect(completed, isTrue);
+        expect(async.pendingTimers, isEmpty);
+      });
+    });
+
+    test('the notifiers of an ended bar can still be listened to and left', () {
+      fakeAsync((FakeAsync async) {
+        final FluentBarControllerImpl<String> c = create();
+        int notified = 0;
+        void listener() => notified++;
+        c.stateNotifier.addListener(listener);
+        c.remainingDurationNotifier.addListener(listener);
+
+        c.close();
+        c.dispose();
+        async.flushMicrotasks();
+
+        expect(() {
+          c.stateNotifier.removeListener(listener);
+          c.remainingDurationNotifier.removeListener(listener);
+          for (final Listenable notifier in <Listenable>[
+            c.itemNotifier,
+            c.stateNotifier,
+            c.elapsedDurationNotifier,
+            c.remainingDurationNotifier,
+            c.totalDurationNotifier,
+            c.remainingProgressNotifier,
+            c.elapsedProgressNotifier,
+            c.taskProgressNotifier,
+            c.progressStateNotifier,
+            c.isActionExecutingNotifier,
+          ]) {
+            notifier.addListener(listener);
+            notifier.removeListener(listener);
+          }
+        }, returnsNormally);
+        expect(notified, greaterThan(0));
         expect(async.pendingTimers, isEmpty);
       });
     });

@@ -1,6 +1,6 @@
 # Showing a bar
 
-Version: 1.0.0. Read this to show a bar: the one-liners, the chain, presets, an action button, gestures, screen readers.
+Version: 1.0.1. Read this to show a bar: the one-liners, the chain, presets, an action button, gestures, screen readers.
 The rules in `AI_GUIDE.md` apply here too.
 
 ## Showing a bar
@@ -34,6 +34,8 @@ FluentBar.show<void>(
 ```
 
 `FluentBarOptions<T>` fields: `meta`, `tags`, `behavior`, `actions`, `appearance`, `callbacks`, `progressState`.
+`show` and every `showInfo` / `showSuccess` / `showWarning` / `showError` / `showCustom` also take
+`isPersistent`, `options` and `overlayState`; `showItem(item)` shows a finished draft.
 
 ### Presets
 
@@ -47,7 +49,9 @@ FluentBar.show<void>(
 ### Chain methods (`FluentBarItem<T>`)
 
 - Content: `withTitle`, `withId`, `withPayload`, `withMeta`, `withPreset`, `withTag(tag)`, `withTags(tags)`
-- Lifetime: `withDuration`, `persistent`, `withTimeoutBar({position, direction})`, `withoutTimeoutBar`
+- Lifetime: `withDuration`, `persistent`, `withTimeoutBar({position, direction})`, `withoutTimeoutBar`.
+  `withDuration` turns `persistent` off, so the order matters: `.persistent().withDuration(d)` is a
+  timed bar, `.withDuration(d).persistent()` stays
 - Progress: `withProgress(state)`, `withLinearProgress({value, state, showText, position, color,
   textEffect, successIconDuration, animationDuration})`, `withCircularProgress({… , size})`
 - Place and queue: `at(position)`, `atTop`, `atBottom`, `atCenter`, `withPriority`, `forced`,
@@ -63,9 +67,10 @@ FluentBar.show<void>(
   not add it there; `.withCloseButton()` after them brings it back. Dismiss reason `closeButton`,
   interaction `close`; `onTap` is not called. It works also while the bar is loading or its action
   runs, so a bar with a hung task can still be closed. Suggest it for web and desktop apps and for
-  persistent bars. In a custom content builder use `FluentBarCloseButton(controller: entry.controller)`.
+  persistent bars. In a custom content builder use `FluentBarCloseButton(controller: entry.controller)`;
+  its other parameters are `icon`, `size` (18), `color`, `padding` and `semanticLabel`.
 - Look: `withBackground`, `withIcon(widget, {color, size})`, `withoutIcon`, `withTheme`,
-  `withThemeMode`, `dark`, `light`, `withEntrance`, `withoutAnimations`, `withContent(builder)`
+  `withThemeMode`, `dark`, `light`, `withEntrance`, `withoutAnimations`, `withContent(builder)` (`(context, entry) => Widget`, replaces the whole content)
 - Action and callbacks: `withAction(label, {onPressed, closeOnAction = true, analyticsName})`,
   `withCancelButton(label, {child, onCancel, canceledMessage, canceledType})`, `onTap`, `onShow`,
   `onDismiss`
@@ -87,7 +92,8 @@ FluentBar.show<void>(
   passed with `item.copyWith(actions: FluentBarActions<T>(…))`. Inside it call
   `controller.handleAction(onPressed: …, closeOnAction: …)` to get the same loader, countdown hold
   and throttling as the default button.
-- Other `FluentBarActions` fields: `child` (a widget instead of `label`), `analyticsName`, `removeWhenProgressEnds`
+- `FluentBarActions` fields: `label`, `onPressed`, `closeOnAction` (default `true`), `builder` (see above).
+  Other fields: `child` (a widget instead of `label`), `analyticsName`, `removeWhenProgressEnds`
   (the button leaves with the progress), `throttleDuration` (400 ms), `maxActionLines`, `actionOverflow`, `actionLoaderColor`, `actionLoadingWidget`.
 
 ## Accessibility and motion
